@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ticket_navigation"
+    app:startDestination="@+id/nav_location">
+
+    <fragment
+        android:id="@+id/nav_location"
+        android:name="s.yarlykov.fne.ui.custom.LocationFragment"
+        android:label="@string/menu_location"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_date"
+        android:name="s.yarlykov.fne.ui.custom.DateFragment"
+        android:label="@string/menu_date"
+        tools:layout="@layout/fragment_gallery" />
+
+    <fragment
+        android:id="@+id/nav_price"
+        android:name="s.yarlykov.fne.ui.custom.PriceFragment"
+        android:label="@string/menu_price"
+        tools:layout="@layout/fragment_slideshow" />
+
+</navigation>
