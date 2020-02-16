@@ -7,7 +7,7 @@
             <corners android:radius="20.0dip" />
             <stroke
                 android:width="3dp"
-                android:color="#888888" />
+                android:color="@color/buttonInactive" />
         </shape>
     </item>
 </selector>
