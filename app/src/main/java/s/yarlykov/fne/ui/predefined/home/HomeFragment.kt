@@ -83,6 +83,9 @@ class HomeFragment : Fragment() {
         fun setButtonClickListener(buttonId: Int) {
             with(buttonId) {
                 buttons[this]?.setOnClickListener {
+
+//                    navController.popBackStack(R.id.fragment_ho, true)
+
                     navController.navigate(this)
                     highlightClicked(this)
                 }

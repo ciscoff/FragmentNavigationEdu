@@ -11,7 +11,7 @@ import androidx.viewpager.widget.ViewPager
 import s.yarlykov.fne.R
 import s.yarlykov.fne.ui.custom.SlidingFragment
 
-private const val NUM_PAGES = 5
+private const val NUM_PAGES = 3
 
 class GalleryFragment : Fragment() {
 
@@ -37,6 +37,6 @@ class GalleryFragment : Fragment() {
         FragmentStatePagerAdapter(fm) {
         override fun getCount(): Int = NUM_PAGES
 
-        override fun getItem(position: Int): Fragment = SlidingFragment()
+        override fun getItem(position: Int): Fragment = SlidingFragment.create(position)
     }
 }
