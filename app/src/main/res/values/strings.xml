@@ -22,4 +22,6 @@
     <string name="menu_date">Date</string>
     <string name="menu_price">Price</string>
 
+    <string name="lorem_ipsum">Create a layout file that you\'ll later use for the content of a fragment. You also need to define a string for the contents of the fragment. The following example contains a text view to display some text</string>
+
 </resources>
