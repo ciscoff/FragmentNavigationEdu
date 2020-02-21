@@ -32,18 +32,25 @@ class TestParser(private val rawJson : List<String>) {
 
 
     private fun worker(i: Int, li: MutableList<Item>): List<Item> {
+
+        if(i >= rawJson.size) return li
+
         val item = rawJson[i]
 
         when {
             item.isOpen() -> {
-                val l = mutableListOf<Item>()
                 brackets++
+                val l = mutableListOf<Item>()
                 li.add(Item(item.substringBefore("["), worker(i + 1, l)))
-                return li
+                return if(brackets > 0) li else worker(i + 1, li)
+
+
+//                return worker(i + 1, li)
             }
             item.isClose() -> {
-                brackets -= Regex("]").findAll(item).count()
-                if(brackets != 0) throw Throwable("${this.javaClass.simpleName}:: Illegal input format")
+                --brackets
+//                brackets -= Regex("]").findAll(item).count()
+//                if(brackets != 0) throw Throwable("${this.javaClass.simpleName}:: Illegal input format")
                 li.add(Item(code = item.substringBefore("]")))
                 return li
             }
