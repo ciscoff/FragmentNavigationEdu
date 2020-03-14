@@ -18,35 +18,38 @@ class ItemIn {
 class ItemOut {
     var propA: Int? = null
     var propB: Double? = null
-    var person: List<Person>? = null
 
-    override fun toString() : String {
+    @ToInt
+    var person: Int? = null
+
+    override fun toString(): String {
         return "$propA, $propB, $person"
     }
-
-//    var person: Int? = null
 }
 
-/**
- * val name = prop.findAnnotation<JsonName>()?.name ?: prop.name
- */
 @Suppress("UNCHECKED_CAST")
-fun ItemIn.toItemOut() : ItemOut {
-
+fun ItemIn.toItemOut(): ItemOut {
 
     val itemOut = ItemOut()
     val kItemOut = itemOut::class
 
     this::class.declaredMemberProperties
-        .forEach {kPropIn ->
+        .forEach { kPropIn ->
 
             kItemOut.declaredMemberProperties.firstOrNull { kPropOut ->
                 kPropIn.name == kPropOut.name
             }?.let {
-                
 
-                val originalValue = (kPropIn as (KProperty1<ItemIn, Any>)).get(this)
-                (it as KMutableProperty<*>).setter.call(itemOut, originalValue)
+                val originalValue = (kPropIn as (KProperty1<ItemIn, Any?>)).get(this)
+
+                val resultValue: Any? =
+                    it.annotations.find {
+                        it is ToInt
+                    }?.let { ano ->
+                        (originalValue as List<Person>).fold(0){total, person -> total + person.id}
+                    } ?: originalValue
+
+                (it as KMutableProperty<*>).setter.call(itemOut, resultValue)
             }
         }
 
@@ -76,5 +79,9 @@ fun main(args: Array<String>) {
 //    println(kItemIn.simpleName)
 //    kItemIn.memberProperties.forEach { println(it.name) }
 
-    println(itemIn.toItemOut())
+    (0..100000).forEach {
+        println("$it: " + itemIn.toItemOut())
+    }
+
+
 }
