@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/motionLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layoutDescription="@xml/timeline_scene"
+    tools:context=".TimeLineActivity">
+
+    <LinearLayout
+        android:id="@+id/ll_time"
+        android:layout_width="100dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:weightSum="6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/background_time_slot"
+            android:gravity="center"
+            android:text="8:00 - 10:00" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/background_time_slot"
+            android:gravity="center"
+            android:text="10:00 - 12:00" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/background_time_slot"
+            android:gravity="center"
+            android:text="12:00 - 14:00" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/background_time_slot"
+            android:gravity="center"
+            android:text="14:00 - 16:00" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/background_time_slot"
+            android:gravity="center"
+            android:text="16:00 - 18:00" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/background_time_slot"
+            android:gravity="center"
+            android:text="18:00 - 20:00" />
+
+    </LinearLayout>
+
+    <s.yarlykov.fne.ui.custom.TimeSlotView
+        android:id="@+id/red_star"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_time_view" />
+
+</androidx.constraintlayout.motion.widget.MotionLayout>
