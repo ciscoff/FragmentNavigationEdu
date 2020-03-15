@@ -93,12 +93,12 @@ fun ItemIn.toItemOutEx(props: Set<String>? = null): ItemOut {
 }
 
 @Suppress("UNCHECKED_CAST")
-inline fun <reified T : Any, reified R : Any> toItemOutG(objIn : T, props: Set<String>? = null): R {
+inline fun <reified T : Any, reified R : Any> T.toItemOutG(props: Set<String>? = null): R {
 
     val objOut = R::class.createInstance()
     val kObjOut = objOut::class
 
-    objIn::class
+    this::class
         .declaredMemberProperties
         .filter {prop ->
             props?.let { prop.name in it } ?: true
@@ -108,7 +108,7 @@ inline fun <reified T : Any, reified R : Any> toItemOutG(objIn : T, props: Set<S
                 kPropIn.name == kPropOut.name
             }?.let {
 
-                val originalValue = (kPropIn as (KProperty1<T, Any?>)).get(objIn)
+                val originalValue = (kPropIn as (KProperty1<T, Any?>)).get(this)
 
                 val resultValue: Any? =
                     it.annotations.find {
@@ -150,6 +150,6 @@ fun main(args: Array<String>) {
 
     println(itemIn.toItemOutEx(setOf("propB", "person")))
 
-    val obj = toItemOutG<ItemIn, ItemOut>(itemIn)
+    val obj = itemIn.toItemOutG<ItemIn, ItemOut>()
     println(obj.toString())
 }
