@@ -3,6 +3,7 @@ package s.yarlykov.fne.reflection
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.primaryConstructor
 
@@ -46,7 +47,7 @@ fun ItemIn.toItemOut(): ItemOut {
                     it.annotations.find {
                         it is ToInt
                     }?.let { ano ->
-                        (originalValue as List<Person>).fold(0){total, person -> total + person.id}
+                        (originalValue as List<Person>).fold(0) { total, person -> total + person.id }
                     } ?: originalValue
 
                 (it as KMutableProperty<*>).setter.call(itemOut, resultValue)
@@ -56,6 +57,72 @@ fun ItemIn.toItemOut(): ItemOut {
     return itemOut
 }
 
+/**
+ * Функция работает только с теми атрибутами, которые указаны в аргументе props
+ */
+@Suppress("UNCHECKED_CAST")
+fun ItemIn.toItemOutEx(props: Set<String>? = null): ItemOut {
+
+    val itemOut = ItemOut()
+    val kItemOut = itemOut::class
+
+    this::class
+        .declaredMemberProperties
+        .filter {prop ->
+            props?.let { prop.name in it } ?: true
+        }.forEach { kPropIn ->
+
+            kItemOut.declaredMemberProperties.firstOrNull { kPropOut ->
+                kPropIn.name == kPropOut.name
+            }?.let {
+
+                val originalValue = (kPropIn as (KProperty1<ItemIn, Any?>)).get(this)
+
+                val resultValue: Any? =
+                    it.annotations.find {
+                        it is ToInt
+                    }?.let { ano ->
+                        (originalValue as List<Person>).fold(0) { total, person -> total + person.id }
+                    } ?: originalValue
+
+                (it as KMutableProperty<*>).setter.call(itemOut, resultValue)
+            }
+        }
+
+    return itemOut
+}
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T : Any, reified R : Any> toItemOutG(objIn : T, props: Set<String>? = null): R {
+
+    val objOut = R::class.createInstance()
+    val kObjOut = objOut::class
+
+    objIn::class
+        .declaredMemberProperties
+        .filter {prop ->
+            props?.let { prop.name in it } ?: true
+        }.forEach { kPropIn ->
+
+            kObjOut.declaredMemberProperties.firstOrNull { kPropOut ->
+                kPropIn.name == kPropOut.name
+            }?.let {
+
+                val originalValue = (kPropIn as (KProperty1<T, Any?>)).get(objIn)
+
+                val resultValue: Any? =
+                    it.annotations.find {
+                        it is ToInt
+                    }?.let { ano ->
+                        (originalValue as List<Person>).fold(0) { total, _ -> total + 1 }
+                    } ?: originalValue
+
+                (it as KMutableProperty<*>).setter.call(objOut, resultValue)
+            }
+        }
+
+    return objOut
+}
 
 fun <T : Any> construct(kClass: KClass<T>): T? {
     val ctor = kClass.primaryConstructor
@@ -79,9 +146,10 @@ fun main(args: Array<String>) {
 //    println(kItemIn.simpleName)
 //    kItemIn.memberProperties.forEach { println(it.name) }
 
-    (0..100000).forEach {
-        println("$it: " + itemIn.toItemOut())
-    }
+    println(itemIn.toItemOutEx())
 
+    println(itemIn.toItemOutEx(setOf("propB", "person")))
 
+    val obj = toItemOutG<ItemIn, ItemOut>(itemIn)
+    println(obj.toString())
 }
