@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer-array name="month_pics">
+        <item>@drawable/bkg_00_dec</item>
+        <item>@drawable/bkg_01_jan</item>
+        <item>@drawable/bkg_02_feb</item>
+        <item>@drawable/bkg_03_mar</item>
+        <item>@drawable/bkg_04_apr</item>
+        <item>@drawable/bkg_05_may</item>
+        <item>@drawable/bkg_06_jun</item>
+        <item>@drawable/bkg_07_jul</item>
+        <item>@drawable/bkg_08_aug</item>
+        <item>@drawable/bkg_09_sep</item>
+        <item>@drawable/bkg_10_oct</item>
+        <item>@drawable/bkg_11_nov</item>
+    </integer-array>
+</resources>
