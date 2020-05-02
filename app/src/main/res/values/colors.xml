@@ -7,4 +7,8 @@
     <color name="buttonActive">#0099EE</color>
     <color name="buttonInactive">#BBBBBB</color>
 
+    <color name="colorIcon">#888</color>
+    <color name="colorTitle">#2B4F6F</color>
+    <color name="colorToolbarTextMenu">#606060</color>
+    <color name="colorToolbarControlNormal">#606060</color>
 </resources>
