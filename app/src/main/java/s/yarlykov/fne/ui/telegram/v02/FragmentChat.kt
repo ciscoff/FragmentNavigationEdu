@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
@@ -116,10 +117,13 @@ class FragmentChat : Fragment() {
         nextFragment.setEnterTransition(enterFade)
 
         val logoImage = root.findViewById<ImageView>(R.id.backdrop)
+//        val titleText = root.findViewById<TextView>(R.id.title_text)
 
         val transaction = fragmentManager
             ?.beginTransaction()
             ?.addSharedElement(logoImage, logoImage.transitionName)
+//            ?.addSharedElement(titleText, titleText.transitionName)
+            ?.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right)
             ?.replace(R.id.fragment_container, nextFragment)
 //            ?.setReorderingAllowed(true)
             ?.addToBackStack(currentFragment::class.java.simpleName)

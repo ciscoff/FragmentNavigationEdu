@@ -19,6 +19,7 @@
             android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:collapsedTitleGravity="center_vertical"
             android:fitsSystemWindows="true"
             app:contentScrim="?attr/colorPrimary"
             app:expandedTitleMarginEnd="64dp"
@@ -43,10 +44,11 @@
                         android:contentDescription="@null"
                         android:fitsSystemWindows="true"
                         android:scaleType="centerCrop"
-                        android:transitionName="@string/toolbar_shared_transition"
+                        android:transitionName="@string/shared_transition_image"
                         app:srcCompat="@drawable/anonymous" />
 
                     <TextView
+                        android:id="@+id/title_text"
                         android:layout_marginStart="12dp"
                         android:layout_marginEnd="12dp"
                         android:layout_gravity="center_vertical"
@@ -60,6 +62,7 @@
                 </LinearLayout>
 
             </androidx.appcompat.widget.Toolbar>
+
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
     </com.google.android.material.appbar.AppBarLayout>

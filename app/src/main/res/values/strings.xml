@@ -9,7 +9,8 @@
 
     <string name="title_chat">Ivan Pupkin</string>
 
-    <string name="toolbar_shared_transition">toolbar_shared_transition</string>
+    <string name="shared_transition_image">shared_transition_image</string>
+    <string name="shared_transition_text">shared_transition_text</string>
 
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
