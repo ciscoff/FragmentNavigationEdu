@@ -1,4 +1,4 @@
-package s.yarlykov.fne.ui.telegram
+package s.yarlykov.fne.ui.telegram.v01
 
 import android.os.Bundle
 import android.view.View
@@ -95,7 +95,8 @@ class ChatActivity : AppCompatActivity() {
 
     private fun initRecyclerView() {
         val view = findViewById<RecyclerView>(R.id.chat_recyclerview)
-        val chatAdapter = AdapterClientChat(model.reversed())
+        val chatAdapter =
+            AdapterClientChat(model.reversed())
 
         view.apply {
             setHasFixedSize(true)

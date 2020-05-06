@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".ui.telegram.ChatActivity"
+    tools:context=".ui.telegram.v01.ChatActivity"
     tools:showIn="@layout/activity_chat">
 
 </androidx.constraintlayout.widget.ConstraintLayout>

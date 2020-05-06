@@ -1,4 +1,4 @@
-package s.yarlykov.fne.ui.telegram
+package s.yarlykov.fne.ui.telegram.v01
 
 import android.view.LayoutInflater
 import android.view.View
