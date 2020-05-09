@@ -1,4 +1,4 @@
-package s.yarlykov.fne.ui.telegram.v02
+package s.yarlykov.fne.ui.telegram.v03
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import s.yarlykov.fne.R
 
-class AdapterClient(private val model: List<String>) : RecyclerView.Adapter<AdapterClient.ViewHolder>() {
+class AdapterClientV3(private val model: List<String>) : RecyclerView.Adapter<AdapterClientV3.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 

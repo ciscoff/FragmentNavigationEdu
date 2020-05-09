@@ -1,4 +1,4 @@
-package s.yarlykov.fne.ui.telegram.v02
+package s.yarlykov.fne.ui.telegram.v03
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -16,11 +16,12 @@ import com.google.android.material.appbar.CollapsingToolbarLayout
 import s.yarlykov.fne.R
 import s.yarlykov.fne.ui.telegram.data.ClientMessage
 import s.yarlykov.fne.ui.telegram.data.DoerMessage
+import s.yarlykov.fne.ui.telegram.v02.FragmentClientV3
 
 const val FADE_DURATION = 300L
 const val MOVE_DURATION = 500L
 
-class FragmentChat : Fragment() {
+class FragmentChatV3 : Fragment() {
 
     private val model = listOf(
         ClientMessage("Добрый день !", "24.04, 18:17"),
@@ -42,7 +43,7 @@ class FragmentChat : Fragment() {
     )
 
     companion object {
-        fun newInstance(): FragmentChat = FragmentChat()
+        fun newInstance(): FragmentChatV3 = FragmentChatV3()
     }
 
     override fun onCreateView(
@@ -83,7 +84,7 @@ class FragmentChat : Fragment() {
     private fun initRecyclerView(root: View) {
         val view = root.findViewById<RecyclerView>(R.id.rv_chat)
         val chatAdapter =
-            AdapterChat(model.reversed())
+            AdapterChatV3(model.reversed())
 
         view.apply {
             setHasFixedSize(true)
@@ -97,7 +98,7 @@ class FragmentChat : Fragment() {
 
         val fragmentManager = activity?.supportFragmentManager
 
-        val nextFragment = FragmentClient.newInstance()
+        val nextFragment = FragmentClientV3.newInstance()
         val currentFragment = this
 
         val exitFade = Fade().also {
@@ -116,7 +117,7 @@ class FragmentChat : Fragment() {
         nextFragment.setSharedElementEnterTransition(
             TransitionInflater.from(activity).inflateTransition(R.transition.image_transition)
         )
-        nextFragment.enterTransition = enterFade
+//        nextFragment.enterTransition = enterFade
 
         val logoImage = root.findViewById<ImageView>(R.id.backdrop)
 //        val titleText = root.findViewById<TextView>(R.id.title_text)

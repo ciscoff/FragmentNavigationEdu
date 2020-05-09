@@ -45,7 +45,7 @@
                         android:fitsSystemWindows="true"
                         android:scaleType="centerCrop"
                         android:transitionName="@string/shared_transition_image"
-                        app:srcCompat="@drawable/anonymous" />
+                        app:srcCompat="@drawable/ship" />
 
                     <TextView
                         android:id="@+id/title_text"

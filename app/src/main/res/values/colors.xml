@@ -11,4 +11,6 @@
     <color name="colorTitle">#2B4F6F</color>
     <color name="colorToolbarTextMenu">#606060</color>
     <color name="colorToolbarControlNormal">#606060</color>
+
+    <color name="chat_output_message_bg">#fde8b3</color>
 </resources>

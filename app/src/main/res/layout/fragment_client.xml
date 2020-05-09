@@ -12,7 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="256dp"
         android:fitsSystemWindows="true"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:background="@android:color/transparent">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/collapsing_toolbar"
@@ -34,7 +35,7 @@
                 android:scaleType="centerCrop"
                 android:transitionName="@string/shared_transition_image"
                 app:layout_collapseMode="parallax"
-                app:srcCompat="@drawable/bkg_01_jan" />
+                app:srcCompat="@drawable/bkg_08_aug" />
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar_telegram"

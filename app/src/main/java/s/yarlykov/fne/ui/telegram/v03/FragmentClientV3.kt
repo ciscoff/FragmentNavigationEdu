@@ -16,8 +16,9 @@ import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import s.yarlykov.fne.R
+import s.yarlykov.fne.ui.telegram.v03.AdapterClientV3
 
-class FragmentClient : Fragment() {
+class FragmentClientV3 : Fragment() {
     private val model = listOf(
        "Уведомления",
         "Телефон",
@@ -78,7 +79,7 @@ class FragmentClient : Fragment() {
     private fun initRecyclerView(root: View) {
         val view = root.findViewById<RecyclerView>(R.id.rv_client)
         val chatAdapter =
-            AdapterClient(model.reversed())
+            AdapterClientV3(model.reversed())
 
         view.apply {
             setHasFixedSize(true)

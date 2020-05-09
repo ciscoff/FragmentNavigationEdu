@@ -1,4 +1,4 @@
-package s.yarlykov.fne.ui.telegram.v02
+package s.yarlykov.fne.ui.telegram.v03
 
 import android.view.LayoutInflater
 import android.view.View
@@ -9,10 +9,9 @@ import androidx.recyclerview.widget.RecyclerView
 import s.yarlykov.fne.R
 import s.yarlykov.fne.ui.telegram.data.ChatMessage
 import s.yarlykov.fne.ui.telegram.data.MessageType
-import s.yarlykov.fne.ui.telegram.v03.AdapterChatV3
 import s.yarlykov.fne.utils.logIt
 
-class AdapterChat(private val model: List<ChatMessage>) : RecyclerView.Adapter<AdapterChat.ViewHolder>() {
+class AdapterChatV3(private val model: List<ChatMessage>) : RecyclerView.Adapter<AdapterChatV3.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 

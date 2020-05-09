@@ -24,7 +24,7 @@
             android:maxLines="5"
             android:minWidth="128dp"
             android:padding="12dp"
-            android:textColor="#eee"
+            android:textColor="#444"
             tools:text="Добрый день !" />
 
         <LinearLayout
