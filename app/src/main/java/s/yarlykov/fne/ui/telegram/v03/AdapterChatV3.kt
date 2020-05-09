@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.recyclerview.widget.RecyclerView
 import s.yarlykov.fne.R
 import s.yarlykov.fne.ui.telegram.data.ChatMessage
@@ -34,6 +35,7 @@ class AdapterChatV3(private val model: List<ChatMessage>) : RecyclerView.Adapter
     }
 
     override fun getItemViewType(position: Int): Int {
+
         logIt("Chat: getItemViewType = ${model[position].type}")
         return model[position].type.ordinal
     }
