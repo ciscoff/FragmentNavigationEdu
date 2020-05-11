@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -11,20 +10,13 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <LinearLayout
+    <FrameLayout
+        android:id="@+id/scene_root"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:gravity="center"
-        android:orientation="vertical">
+        android:layout_height="200dp">
 
-        <ImageView
-            android:id="@+id/iv_rounded"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_gravity="center"
-            android:contentDescription="@null"
-            tools:srcCompat="@drawable/anonymous" />
+        <include layout="@layout/scene_image_scale_a" />
+<!--        <include layout="@layout/scene_image_scale_b" />-->
 
-    </LinearLayout>
-
+    </FrameLayout>
 </LinearLayout>

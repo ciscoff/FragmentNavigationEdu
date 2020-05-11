@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scene_a"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/iv_rounded"
+        android:layout_width="@dimen/circle_diameter"
+        android:layout_height="@dimen/circle_diameter"
+        android:layout_margin="20dp"
+        android:layout_gravity="start|top"
+        android:contentDescription="@null"
+        tools:srcCompat="@drawable/anonymous" />
+
+    <ImageView
+        android:visibility="gone"
+        android:id="@+id/iv_matrix"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@null"
+        android:layout_margin="48dp"
+        android:layout_gravity="start|top"
+        android:scaleType="matrix"
+        app:srcCompat="@drawable/valery"
+        tools:srcCompat="@drawable/valery" />
+</FrameLayout>
+
