@@ -74,11 +74,19 @@
         </activity>
         <activity android:name=".ui.telegram.v02.TelegramActivity" />
         <activity android:name=".ui.telegram.v04.TelegramActivityV4">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+        </activity>
+        <activity android:name=".ui.telegram.v05.TelegramActivityV5" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
 
 
