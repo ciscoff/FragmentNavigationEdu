@@ -24,7 +24,6 @@ class TelegramActivityV4 : AppCompatActivity() {
     lateinit var ivRect: ImageView
     lateinit var tvProgress: TextView
 
-
     val interpolatorCorners = AccelerateInterpolator(3f)
     val interpolatorLayout = AccelerateInterpolator(1.2f)
 
