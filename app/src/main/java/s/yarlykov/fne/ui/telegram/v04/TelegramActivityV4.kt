@@ -90,30 +90,6 @@ class TelegramActivityV4 : AppCompatActivity() {
      * значения (initDiameter)
      *
      */
-    private fun updateAvatarMarginAndLayoutV1(progress: Int) {
-        val parentWidth = sceneRoot.measuredWidth
-        val initMargin = dimensionPix(R.dimen.margin_rounded)
-        val initDiameter = dimensionPix(R.dimen.circle_diameter_v4)
-        val widthDelta = parentWidth.toFloat() - initDiameter
-
-        val avatarLayoutParams = ivAvatar.layoutParams
-        val avatarMarginParams = ivAvatar.layoutParams as ViewGroup.MarginLayoutParams
-
-        // Меняем marginStart
-        val currentMargin =
-            initMargin - (initMargin.toFloat() * (progress.toFloat() / seekMax.toFloat())).toInt()
-        avatarMarginParams.marginStart = currentMargin
-
-        // Меняем размер ivAvatar
-        avatarLayoutParams.width =
-            initDiameter + (widthDelta * (progress.toFloat() / seekMax.toFloat())).toInt()
-        avatarLayoutParams.height = avatarLayoutParams.width
-
-        ivAvatar.layoutParams = avatarLayoutParams
-        ivAvatar.requestLayout()
-        ivAvatar.invalidate()
-    }
-
     private fun updateAvatarMarginAndLayout(progress: Int) {
         val parentWidth = sceneRoot.measuredWidth
         val initMargin = dimensionPix(R.dimen.margin_rounded)
@@ -139,6 +115,31 @@ class TelegramActivityV4 : AppCompatActivity() {
         ivAvatar.requestLayout()
         ivAvatar.invalidate()
     }
+
+    private fun updateAvatarMarginAndLayoutV1(progress: Int) {
+        val parentWidth = sceneRoot.measuredWidth
+        val initMargin = dimensionPix(R.dimen.margin_rounded)
+        val initDiameter = dimensionPix(R.dimen.circle_diameter_v4)
+        val widthDelta = parentWidth.toFloat() - initDiameter
+
+        val avatarLayoutParams = ivAvatar.layoutParams
+        val avatarMarginParams = ivAvatar.layoutParams as ViewGroup.MarginLayoutParams
+
+        // Меняем marginStart
+        val currentMargin =
+            initMargin - (initMargin.toFloat() * (progress.toFloat() / seekMax.toFloat())).toInt()
+        avatarMarginParams.marginStart = currentMargin
+
+        // Меняем размер ivAvatar
+        avatarLayoutParams.width =
+            initDiameter + (widthDelta * (progress.toFloat() / seekMax.toFloat())).toInt()
+        avatarLayoutParams.height = avatarLayoutParams.width
+
+        ivAvatar.layoutParams = avatarLayoutParams
+        ivAvatar.requestLayout()
+        ivAvatar.invalidate()
+    }
+
 
     /**
      * Это аналог интерполятора. Изменяет коэффициент

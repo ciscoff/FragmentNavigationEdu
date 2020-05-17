@@ -1,6 +1,7 @@
 package s.yarlykov.fne.ui.telegram.v05
 
 import android.os.Bundle
+import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
@@ -9,8 +10,11 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import s.yarlykov.fne.R
+import s.yarlykov.fne.extensions.dimensionPix
 import s.yarlykov.fne.extensions.setRoundedDrawable
+import s.yarlykov.fne.utils.logIt
 import kotlin.math.max
+import kotlin.math.min
 
 class TelegramActivityV5 : AppCompatActivity() {
 
@@ -61,6 +65,12 @@ class TelegramActivityV5 : AppCompatActivity() {
         appBar.setExpanded(false)
     }
 
+    /**
+     * scrollOffset имеет отрицательное значение при расширении CollapsingToolbarLayout'а
+     * и становится равен 0 в нижней точке. Поэтому здесь используется выражение:
+     *      scrollMax + scrollOffset
+     * фактически это вычитание.
+     */
     private fun updateAvatarCorderRadius(scrollOffset: Int) {
 
         val progress = scrollMax + scrollOffset
@@ -71,6 +81,41 @@ class TelegramActivityV5 : AppCompatActivity() {
         roundedDrawable.cornerRadius = max(cornerRadiusMax - progress * step * kC, 0f)
     }
 
+    /**
+     *
+     */
+    private fun updateAvatarMarginAndLayout(scrollOffset: Int) {
+        val progress = scrollMax + scrollOffset
+
+        val parentWidth = appBar.measuredWidth
+        logIt("parentWidth=$parentWidth")
+
+        val initStartMargin = dimensionPix(R.dimen.margin_rounded)
+        val initBottomMargin = dimensionPix(R.dimen.margin_rounded_bottom)
+        val initDiameter = dimensionPix(R.dimen.circle_diameter_v5)
+        val widthDelta = parentWidth.toFloat() - initDiameter
+
+        val kL = interpolatorLayout.getInterpolation(1f + progress.toFloat()/100f)
+
+        val avatarLayoutParams = ivAvatar.layoutParams
+        val avatarMarginParams = ivAvatar.layoutParams as ViewGroup.MarginLayoutParams
+
+        // Меняем margin'ы
+        val currentMarginStart = max(initStartMargin - ((initStartMargin.toFloat() * (progress.toFloat() / scrollMax.toFloat())) * kL).toInt(), 0)
+        val currentMarginBottom = max(initBottomMargin - ((initBottomMargin.toFloat() * (progress.toFloat() / scrollMax.toFloat())) * kL).toInt(), 0)
+        avatarMarginParams.marginStart = currentMarginStart
+        avatarMarginParams.bottomMargin = currentMarginBottom
+
+        // Меняем размер ivAvatar
+        avatarLayoutParams.width = min(initDiameter + ((widthDelta * (progress.toFloat() / scrollMax.toFloat())) * kL).toInt(), parentWidth)
+        avatarLayoutParams.height = avatarLayoutParams.width
+
+        ivAvatar.layoutParams = avatarLayoutParams
+        ivAvatar.requestLayout()
+        ivAvatar.invalidate()
+
+    }
+
     private val listener = object : AppBarLayout.OnOffsetChangedListener {
         override fun onOffsetChanged(appBarLayout: AppBarLayout?, verticalOffset: Int) {
 
@@ -78,6 +123,7 @@ class TelegramActivityV5 : AppCompatActivity() {
             scrollMax = max(scrollMax, appBar.totalScrollRange)
 
             updateAvatarCorderRadius(verticalOffset)
+            updateAvatarMarginAndLayout(verticalOffset)
 
             if (::tvLog.isInitialized) {
                 val t = "offset= $verticalOffset, scroll range = ${scrollMax}"

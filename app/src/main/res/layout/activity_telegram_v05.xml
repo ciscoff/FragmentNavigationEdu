@@ -9,7 +9,7 @@
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar_layout"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/app_bar_height"
+        android:layout_height="@dimen/app_bar_height_v5"
         android:fitsSystemWindows="true"
         android:theme="@style/AppTheme.AppBarOverlay">
 
@@ -41,9 +41,8 @@
                 android:layout_height="@dimen/circle_diameter_v5"
                 android:layout_gravity="bottom|start"
                 android:layout_marginStart="@dimen/margin_rounded"
-                android:layout_marginBottom="4dp"
+                android:layout_marginBottom="@dimen/margin_rounded_bottom"
                 android:contentDescription="@null"
-                android:scaleType="centerCrop"
                 tools:srcCompat="@drawable/anonymous" />
 
             <androidx.appcompat.widget.Toolbar
