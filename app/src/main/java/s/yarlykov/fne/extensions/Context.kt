@@ -19,7 +19,6 @@ fun Context.roundedDrawable(drawableId: Int): Drawable {
     }
 }
 
-
 fun Context.dimensionPix(dimenId : Int) : Int {
     return this.resources.getDimensionPixelOffset(dimenId)
 }
