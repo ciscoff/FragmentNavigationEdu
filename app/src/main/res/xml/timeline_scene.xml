@@ -12,7 +12,7 @@
 <!--    </Transition>-->
 
     <Transition
-        app:constraintSetEnd="@+id/end"
+        app:constraintSetEnd="@+id/end_right"
         app:constraintSetStart="@+id/start">
         <OnSwipe app:touchAnchorId="@id/red_star" />
 
@@ -29,7 +29,7 @@
     </ConstraintSet>
 
     <!-- Constraints to apply at the end of the animation -->
-    <ConstraintSet android:id="@+id/end">
+    <ConstraintSet android:id="@+id/end_right">
         <Constraint
             android:id="@+id/red_star"
             android:layout_width="100dp"

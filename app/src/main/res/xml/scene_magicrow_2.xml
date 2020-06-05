@@ -5,27 +5,28 @@
     <Transition
         app:constraintSetEnd="@+id/end_right"
         app:constraintSetStart="@+id/start"
-        app:duration="300">
+        app:duration="1000">
         <OnSwipe
             app:dragDirection="dragRight"
-            app:touchAnchorId="@+id/slider_view"
+            app:touchAnchorId="@+id/slider_view2"
             app:touchAnchorSide="right" />
     </Transition>
 
     <Transition
         app:constraintSetEnd="@+id/end_left"
         app:constraintSetStart="@+id/start"
-        app:duration="300">
+        app:duration="1000">
         <OnSwipe
             app:dragDirection="dragLeft"
-            app:touchAnchorId="@+id/slider_view"
+            app:touchAnchorId="@+id/slider_view2"
             app:touchAnchorSide="left" />
     </Transition>
 
     <ConstraintSet android:id="@+id/start">
         <Constraint
-            android:id="@+id/slider_view"
-            android:layout_width="200dp"
+            android:id="@+id/slider_view2"
+            android:layout_width="0dp"
+            app:layout_constraintWidth_percent="0.6"
             android:layout_height="match_parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -35,10 +36,11 @@
     <!-- Constraints to apply at the end of the animation -->
     <ConstraintSet android:id="@+id/end_right">
         <Constraint
-            android:id="@+id/slider_view"
-            android:layout_width="200dp"
+            android:id="@+id/slider_view2"
+            android:layout_width="0dp"
+            app:layout_constraintWidth_percent="0.8"
             android:layout_height="match_parent"
-            android:translationX="100dp"
+            android:translationX="40dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </ConstraintSet>
@@ -46,11 +48,11 @@
     <!-- Constraints to apply at the end of the animation -->
     <ConstraintSet android:id="@+id/end_left">
         <Constraint
-            android:id="@+id/slider_view"
+            android:id="@+id/slider_view2"
             android:layout_width="0dp"
             app:layout_constraintWidth_percent="0.8"
             android:layout_height="match_parent"
-            android:translationX="-100dp"
+            android:translationX="-40dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </ConstraintSet>
