@@ -12,9 +12,20 @@ class MagicRowActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_magic_row)
 
-        findViewById<TextView>(R.id.text_slider).apply {
-            setOnTouchListener(OnSwipeTouchListener(this))
+        findViewById<TextView>(R.id.text_slider_1).apply {
+            setOnTouchListener(OnSwipeTouchListener01(this))
         }
 
+        findViewById<TextView>(R.id.text_slider_2).apply {
+            setOnTouchListener(OnSwipeTouchListener02(this))
+        }
+
+        findViewById<TextView>(R.id.text_slider_3).apply {
+            setOnTouchListener(OnSwipeTouchListener03(this))
+        }
+
+        findViewById<TextView>(R.id.text_slider_4).apply {
+            setOnTouchListener(OnSwipeTouchListener04(this))
+        }
     }
 }

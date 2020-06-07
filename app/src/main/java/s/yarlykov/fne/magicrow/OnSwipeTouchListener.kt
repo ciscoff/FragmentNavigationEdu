@@ -140,7 +140,7 @@ open class OnSwipeTouchListener(private val view: View, isViewScrolling : Boolea
 //
 //            scroller.startScroll(scroller.currX, scroller.currY, 200, scroller.currY)
 
-            view.animate().x()
+//            view.animate().x()
 //            view.postInvalidate()
 
             return true
