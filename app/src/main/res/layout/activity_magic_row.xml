@@ -50,7 +50,7 @@
             android:layout_width="10dp"
             android:layout_height="10dp"
             android:layout_gravity="center"
-            android:background="@android:color/white"
+            android:background="@drawable/background_slider"
             android:gravity="center"
             android:text="SLIDER" />
 
@@ -96,7 +96,7 @@
             android:layout_width="10dp"
             android:layout_height="10dp"
             android:layout_gravity="center"
-            android:background="@android:color/white"
+            android:background="@drawable/background_slider"
             android:gravity="center"
             android:text="SLIDER" />
 
@@ -107,12 +107,29 @@
         android:layout_width="match_parent"
         android:layout_height="12dp" />
 
-
-    <FrameLayout
+    <TextView
+        android:id="@+id/text_scroller"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="center"
         android:layout_marginStart="12sp"
         android:layout_marginEnd="12sp"
+        android:background="@color/colorAccent"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="Scrolling Text"
+        android:textColor="@android:color/white"
+        android:textStyle="bold" />
+
+    <Space
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize">
+        android:layout_height="12dp" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_marginStart="12sp"
+        android:layout_marginEnd="12sp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -140,11 +157,13 @@
             android:background="@color/colorAccent"
             android:gravity="center"
             android:padding="8dp"
-            android:text="TEXT SLIDER"
+            android:text="Scrolling View"
             android:textColor="@android:color/white"
             android:textStyle="bold" />
 
+
     </FrameLayout>
+
 
 </LinearLayout>
 
