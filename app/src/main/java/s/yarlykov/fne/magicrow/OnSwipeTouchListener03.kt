@@ -12,7 +12,7 @@ import s.yarlykov.fne.R
 import s.yarlykov.fne.extensions.dimensionPix
 import s.yarlykov.fne.utils.logIt
 
-open class OnSwipeTouchListener03(private val view: View, isViewScrolling: Boolean = true) :
+open class OnSwipeTouchListener03(private val view: View) :
     OnTouchListener {
 
     private val context = view.context
