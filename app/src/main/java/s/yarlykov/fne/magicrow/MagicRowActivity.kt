@@ -27,5 +27,9 @@ class MagicRowActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.text_slider_4).apply {
             setOnTouchListener(OnSwipeTouchListener04(this))
         }
+
+        findViewById<TextView>(R.id.text_slider_5).apply {
+            setOnTouchListener(OnSwipeTouchListener05(this))
+        }
     }
 }
