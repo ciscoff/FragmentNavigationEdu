@@ -23,7 +23,7 @@ class ActivityDarkSide : AppCompatActivity() {
 
         rv.apply {
             adapter = adapterDarkSide
-            layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+            layoutManager = LayoutManagerDarkSide()
         }
 
     }

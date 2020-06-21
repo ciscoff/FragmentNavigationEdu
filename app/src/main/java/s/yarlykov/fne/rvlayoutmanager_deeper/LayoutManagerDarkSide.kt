@@ -1,18 +1,28 @@
 package s.yarlykov.fne.rvlayoutmanager_deeper
 
 
+import android.content.Context
+import android.util.SparseArray
+import android.view.View
+import androidx.collection.SparseArrayCompat
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.math.min
 
 class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
 
-    private var childDecoratedWidth: Int = 0
-    private var childDecoratedHeight: Int = 0
+    private var decoratedChildWidth: Int = 0
+    private var decoratedChildHeight: Int = 0
 
+    // Количество видимых строк плюс 1
+    private var visibleRowCount = 0
+
+    // Adapter position для первого видимого элемента внутри RecyclerView
+    private var firstVisiblePosition = 0
 
     /**
      *
      */
-    override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State?) {
+    override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
 
         /**
          * Текущее количество элементов в АДАПТЕРЕ (может быть пусто, если их удалили)
@@ -31,6 +41,12 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             detachAndScrapAttachedViews(recycler)
             return
         }
+
+
+        /**
+         * См описание в исходнике
+         */
+//        state.itemCount
 
         /**
          * getChildCount() - Количество дочерних View приаттаченных к RecyclerView БЕЗ учета
@@ -52,14 +68,106 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             /**
              * Все элементы будут одинаковой высоты и ширины
              */
-            childDecoratedWidth = getDecoratedMeasuredWidth(scrap)
-            childDecoratedHeight = getDecoratedMeasuredHeight(scrap)
+            decoratedChildWidth = getDecoratedMeasuredWidth(scrap)
+            decoratedChildHeight = getDecoratedMeasuredHeight(scrap)
 
-
+            /**
+             * Данные сохранены, можно детачить в скрап
+             */
+            detachAndScrapView(scrap, recycler)
         }
+
+        // Рекомендуется всегда делать перерасчет количества строк.
+        updateWindowSizing()
+
+        fillRows(recycler)
 
     }
 
+    private fun fillRows(recycler: RecyclerView.Recycler) {
+        val viewCache = SparseArray<View>(childCount)
+
+        var leftOffset = 0
+        var topOffset = 0
+
+        // Заполнить локальный кэш
+        if (childCount != 0) {
+
+            // Все видимое в кэш
+            for (i in 0 until childCount) {
+                val position = positionOfIndex(i)
+                viewCache.put(position, getChildAt(i))
+            }
+
+            // Скрапим содержимое кэша
+            for (i in 0 until viewCache.size()) {
+                detachView(viewCache.valueAt(i))
+            }
+        }
+
+        for (i in 0 until getVisibleChildCount()) {
+            val nextPosition = positionOfIndex(i)
+
+            var view = viewCache.get(nextPosition)
+
+            if (view == null) {
+                view = recycler.getViewForPosition(nextPosition)
+                addView(view)
+
+                measureChildWithMargins(view, 0, 0)
+                layoutDecorated(
+                    view,
+                    leftOffset,
+                    topOffset,
+                    leftOffset + decoratedChildWidth,
+                    topOffset + decoratedChildHeight
+                )
+
+                topOffset += decoratedChildHeight
+            } else {
+                attachView(view)
+                viewCache.remove(nextPosition)
+            }
+        }
+
+        for (i in 0 until viewCache.size()) {
+            recycler.recycleView(viewCache.valueAt(i))
+        }
+    }
+
+    private fun getVisibleChildCount(): Int = visibleRowCount
+
+    /**
+     * Маппинг между индексом внутри RecyclerView и adapter position
+     */
+    private fun positionOfIndex(childIndex: Int): Int {
+        return firstVisiblePosition + childIndex
+    }
+
+    /**
+     * Расчитать количество видимых строк плюс 1, но не более количества элементов в адаптере.
+     */
+    private fun updateWindowSizing() {
+        visibleRowCount = (getVerticalSpace() / decoratedChildHeight) + 1
+
+        if (getVerticalSpace() % decoratedChildHeight > 0) {
+            visibleRowCount++
+        }
+
+        visibleRowCount = min(getTotalRowCount(), visibleRowCount)
+    }
+
+    private fun getTotalRowCount(): Int {
+        return itemCount
+    }
+
+    private fun getHorizontalSpace(): Int {
+        return width - paddingLeft - paddingRight
+    }
+
+    private fun getVerticalSpace(): Int {
+        return height - paddingTop - paddingBottom
+    }
 
     override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams {
         return RecyclerView.LayoutParams(
