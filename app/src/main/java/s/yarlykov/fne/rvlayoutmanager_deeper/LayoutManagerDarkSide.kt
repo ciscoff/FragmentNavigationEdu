@@ -1,11 +1,9 @@
 package s.yarlykov.fne.rvlayoutmanager_deeper
 
-
-import android.content.Context
 import android.util.SparseArray
 import android.view.View
-import androidx.collection.SparseArrayCompat
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.math.max
 import kotlin.math.min
 
 class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
@@ -19,8 +17,13 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
     // Adapter position для первого видимого элемента внутри RecyclerView
     private var firstVisiblePosition = 0
 
+    override fun canScrollVertically(): Boolean = true
+
     /**
+     * NOTE: Этот метод вызывается либо при первичной отрисовке данных из адаптера,
+     * либо при их изменении одним из методов notify...().
      *
+     * В любом случае в начале работы нужно сделать detach/scrap
      */
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
 
@@ -42,19 +45,21 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             return
         }
 
-
         /**
          * См описание в исходнике
          */
 //        state.itemCount
 
         /**
-         * getChildCount() - Количество дочерних View приаттаченных к RecyclerView БЕЗ учета
-         * Viewб которые detached and/or scrapped. 'mChildHelper.getChildCount()'
+         * getChildCount() - Количество дочерних View, приаттаченных к RecyclerView БЕЗ учета
+         * View, которые detached/scrapped.
+         * Цепочка: Свой метод базового класса -> 'mChildHelper.getChildCount()'
          *
-         * childCount == 0 при начальном Layout'е. Если Layout начальный, то мы должны взять одну
-         * View, измерить её и сохранить размеры в глобальных переменных для последующего
-         * ипользования с другими View. В шашем случае все View одинакового размера.
+         * childCount == 0 при начальном Layout'е.
+         *
+         * В данном примере мы полагаем, что все элементы одинакового размера, поэтому
+         * уместно при начальном layout'е взять одну View, измерить её и сохранить размеры
+         * в глобальных переменных для последующего ипользования с другими View.
          * Итак, берем View, добавляем в ViewGroup, измеряем с учетом LayoutParams этой ViewGroup,
          * сохраняем данные измерений и детачим View в Scrap. Там она сохранится с учетом своей
          * позиции в адаптере.
@@ -81,13 +86,12 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         updateWindowSizing()
 
         fillRows(recycler)
-
     }
 
     private fun fillRows(recycler: RecyclerView.Recycler) {
         val viewCache = SparseArray<View>(childCount)
 
-        var leftOffset = 0
+        val leftOffset = 0
         var topOffset = 0
 
         // Заполнить локальный кэш
@@ -95,7 +99,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
 
             // Все видимое в кэш
             for (i in 0 until childCount) {
-                val position = positionOfIndex(i)
+                val position = childIndexToPosition(i)
                 viewCache.put(position, getChildAt(i))
             }
 
@@ -105,8 +109,8 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             }
         }
 
-        for (i in 0 until getVisibleChildCount()) {
-            val nextPosition = positionOfIndex(i)
+        for (index in 0 until getVisibleChildCount()) {
+            val nextPosition = childIndexToPosition(index)
 
             var view = viewCache.get(nextPosition)
 
@@ -135,38 +139,106 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         }
     }
 
+    override fun scrollVerticallyBy(
+        dy: Int,
+        recycler: RecyclerView.Recycler?,
+        state: RecyclerView.State?
+    ): Int {
+
+        // 1. Нет Views в RecyclerView (return)
+        if (childCount == 0) return 0
+
+        // 2. Все элементы уместились в view port (return)
+        val topView = getChildAt(0)
+        val bottomView = getChildAt(childCount - 1)
+
+        val viewSpan = getDecoratedBottom(bottomView!!) - getDecoratedTop(topView!!)
+        if (viewSpan <= verticalSpace) return 0
+
+        // 3. Нужно вычислить delta
+        val bottomOffset: Int
+        var topOffset = 0
+        val delta: Int
+
+        val topBoundReached = firstVisibleRow == 0
+        val bottomBoundReached = lastVisibleRow == (itemCount - 1)
+
+        delta = when {
+
+            /**
+             * Палец и контент идут вверх
+             *
+             * В это место попадаем, если нижняя граница последнего элемента НИЖЕ границы
+             * view port, а значит результат verticalSpace - getDecoratedBottom(bottomView)
+             * имеет отрицательное значение.
+             */
+            dy > 0 -> {
+                if (bottomBoundReached) {
+                    bottomOffset = verticalSpace - getDecoratedBottom(bottomView)
+                    max(-dy, bottomOffset)  // максимальное из двух ОТРИЦАТЕЛЬНЫХ чисел
+                } else {
+                    -dy
+                }
+            }
+
+            /**
+             * Палец и контент идут вниз
+             */
+            dy < 0 -> {
+                if(topBoundReached) {
+                    topOffset = getDecoratedTop(topView)
+                    min(-dy, -topOffset) // Минимальное из двух ПОЛОЖИТЕЛЬНЫХ чисел
+
+                } else {
+                    -dy
+                }
+            }
+            else -> {
+                -dy
+            }
+        }
+        offsetChildrenVertical(delta)
+
+        return -delta
+    }
+
     private fun getVisibleChildCount(): Int = visibleRowCount
 
     /**
      * Маппинг между индексом внутри RecyclerView и adapter position
      */
-    private fun positionOfIndex(childIndex: Int): Int {
+    private fun childIndexToPosition(childIndex: Int): Int {
         return firstVisiblePosition + childIndex
     }
+
+    private val firstVisibleRow: Int
+        get() = firstVisiblePosition
+
+    private val lastVisibleRow: Int
+        get() = firstVisibleRow + visibleRowCount
+
+    private val totalRowCount: Int
+        get() = itemCount
+
+    /**
+     * "Полезное" вертикальное пространство для размещения дочерних Views.
+     * То есть высота RecyclerView минус вертикальные padding'и.
+     */
+    private val verticalSpace: Int
+        //        get() = height - paddingTop - paddingBottom
+        get() = height
 
     /**
      * Расчитать количество видимых строк плюс 1, но не более количества элементов в адаптере.
      */
     private fun updateWindowSizing() {
-        visibleRowCount = (getVerticalSpace() / decoratedChildHeight) + 1
+        visibleRowCount = (verticalSpace / decoratedChildHeight) + 1
 
-        if (getVerticalSpace() % decoratedChildHeight > 0) {
+        if (verticalSpace % decoratedChildHeight != 0) {
             visibleRowCount++
         }
 
-        visibleRowCount = min(getTotalRowCount(), visibleRowCount)
-    }
-
-    private fun getTotalRowCount(): Int {
-        return itemCount
-    }
-
-    private fun getHorizontalSpace(): Int {
-        return width - paddingLeft - paddingRight
-    }
-
-    private fun getVerticalSpace(): Int {
-        return height - paddingTop - paddingBottom
+        visibleRowCount = min(totalRowCount, visibleRowCount)
     }
 
     override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams {
