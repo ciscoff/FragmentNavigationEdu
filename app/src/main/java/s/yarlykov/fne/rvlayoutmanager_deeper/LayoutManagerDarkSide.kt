@@ -154,7 +154,9 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
      * Данный метод предназначен для отрисовки новых View, которые появляются в нижней части
      * списка при прокрутке контента вверх. Вызывается он только по этому случаю и в момент вызова
      * у RecyclerView все child в состоянии detach, то есть нельзя пользоваться getChildAt(i),
-     * получим null. Всвязи с этим первый элемент берется из локального кэша.
+     * получим null. В связи с этим первый элемент берется из локального кэша.
+     *
+     * Направление заполнения: сверху вниз
      */
     private fun fillDown(recycler: RecyclerView.Recycler, viewCache: SparseArray<View>) {
 
@@ -169,10 +171,13 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         while (fillDown && position < itemCount) {
             var child = viewCache.get(position)
 
-            // Если есть элемент в кэше и его нижняя граница в области видимости
-            if (child != null && getDecoratedBottom(child) > 0) {
-                attachView(child)
-                viewCache.remove(position)
+            // В кэше есть элемент
+            if (child != null) {
+                // И его нижняя граница в области видимости
+                if(getDecoratedBottom(child) > 0) {
+                    attachView(child)
+                    viewCache.remove(position)
+                }
             }
             // Если кэш закончился, то запрашиваем новый View
             else {
@@ -190,12 +195,53 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
 
             viewTop = getDecoratedBottom(child)
             fillDown = viewTop <= height
-
             position++
         }
     }
 
+    /**
+     * Заполнить верхнюю часть RecyclerView при прокрутке контента вниз.
+     *
+     * Заполняем снизу вверх
+     */
     private fun fillUp(recycler: RecyclerView.Recycler, viewCache: SparseArray<View>) {
+        var position = viewCache.valueAt(viewCache.size() - 1)
+            ?.let { lastView -> getPosition(lastView) } ?: -1
+
+        if (position == -1) return
+
+        var fillUp = true
+        var viewBottom = 0
+
+        while (fillUp && position >= 0) {
+            var child = viewCache.get(position)
+
+            // В кэше есть элемент
+            if (child != null ) {
+                // И его верхняя граница в области видимости
+                if(getDecoratedTop(child) < height) {
+                    attachView(child)
+                    viewCache.remove(position)
+                }
+            }
+            // Если кэш закончился, то запрашиваем новый View
+            else {
+                child = recycler.getViewForPosition(position)
+                addView(child)
+                measureChildWithMargins(child, 0, 0)
+                layoutDecorated(
+                    child,
+                    0,
+                    viewBottom - decoratedChildHeight,
+                    decoratedChildWidth,
+                    viewBottom
+                )
+            }
+
+            viewBottom = getDecoratedTop(child)
+            fillUp = viewBottom >= 0
+            position--
+        }
     }
 
     override fun scrollVerticallyBy(
@@ -231,7 +277,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             (dy < 0) -> {
 
                 if (getDecoratedTop(firstView) > 0) {
-
+                    fillRows(recycler, FillDirection.DIRECTION_UP)
                 }
             }
         }
@@ -260,7 +306,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
              */
             dy > 0 -> {
                 if (bottomBoundReached) {
-                    bottomOffset = getDecoratedBottom(lastView) - verticalSpace
+                    bottomOffset = getDecoratedBottom(lastView) - height
                     min(bottomOffset, dy)  // Минимальное из двух ПОЛОЖИТЕЛЬНЫХ чисел
                 } else {
                     dy
@@ -275,7 +321,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
                     topOffset = getDecoratedTop(firstView)
                     max(dy, topOffset) // Максимальное из двух ОТРИЦАТЕЛЬНЫХ чисел
                 } else {
-                    -dy
+                    dy
                 }
             }
             else -> {
