@@ -3,6 +3,7 @@ package s.yarlykov.fne.rvlayoutmanager_deeper
 import android.util.SparseArray
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import s.yarlykov.fne.utils.logIt
 import kotlin.math.max
 import kotlin.math.min
 
@@ -26,6 +27,9 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
      * В любом случае в начале работы нужно сделать detach/scrap
      */
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
+        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
+
+        logIt("$dbgPrefix")
 
         /**
          * Текущее количество элементов в АДАПТЕРЕ (может быть пусто, если их удалили)
@@ -92,6 +96,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         recycler: RecyclerView.Recycler,
         direction: FillDirection = FillDirection.DIRECTION_NONE
     ) {
+        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
         val viewCache = SparseArray<View>(childCount)
 
         // Заполнить локальный кэш содержимым view port'а, то есть поместить все
@@ -107,11 +112,14 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         for (i in 0 until viewCache.size()) {
             detachView(viewCache.valueAt(i))
         }
+        logIt("$dbgPrefix childCount=$childCount")
 
         when (direction) {
             FillDirection.DIRECTION_DOWN -> fillDown(recycler, viewCache)
             FillDirection.DIRECTION_UP -> fillUp(recycler, viewCache)
             FillDirection.DIRECTION_NONE -> {
+
+                logIt("$dbgPrefix $direction")
 
                 val leftOffset = 0
                 var topOffset = 0
@@ -159,6 +167,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
      * Направление заполнения: сверху вниз
      */
     private fun fillDown(recycler: RecyclerView.Recycler, viewCache: SparseArray<View>) {
+        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
 
         var position = viewCache.valueAt(0)
             ?.let { firstView -> getPosition(firstView) } ?: -1
@@ -205,6 +214,9 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
      * Заполняем снизу вверх
      */
     private fun fillUp(recycler: RecyclerView.Recycler, viewCache: SparseArray<View>) {
+        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
+        logIt("$dbgPrefix")
+
         var position = viewCache.valueAt(viewCache.size() - 1)
             ?.let { lastView -> getPosition(lastView) } ?: -1
 
@@ -250,6 +262,9 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         state: RecyclerView.State?
     ): Int {
 
+        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
+        logIt("$dbgPrefix childCount=$childCount")
+
         // 1. Нет Views в RecyclerView (return)
         if (childCount == 0) return 0
 
@@ -258,30 +273,33 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         val lastView: View? = getChildAt(childCount - 1)
 
         val viewSpan = getDecoratedBottom(lastView!!) - getDecoratedTop(firstView!!)
-        if (viewSpan <= height) return 0
+
+//        if (viewSpan <= height) return 0
 
         // 3. Нужно вычислить delta и проскролить на её значение
         val delta = calculateVerticalScrollingDelta(dy, firstView, lastView)
+        logIt("$dbgPrefix delta=$delta")
+
         offsetChildrenVertical(-delta)
 
         // Добавить новые элементы, если требуется
         when {
-            // Находим самый нижний элемент и от него добавляем вниз
+            // Палец вверх.
             (dy > 0) -> {
                 if (getDecoratedBottom(lastView) < height) {
                     fillRows(recycler, FillDirection.DIRECTION_DOWN)
                 }
-
             }
             // Находим самый верхний элемент и от него добавляем вверх
             (dy < 0) -> {
-
                 if (getDecoratedTop(firstView) > 0) {
                     fillRows(recycler, FillDirection.DIRECTION_UP)
                 }
             }
+            else -> fillRows(recycler)
         }
 
+        logIt("$dbgPrefix delta=$delta")
         return delta
     }
 
@@ -289,6 +307,8 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
      * Вычислить реальное значение для dY
      */
     private fun calculateVerticalScrollingDelta(dy: Int, firstView: View, lastView: View): Int {
+        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
+
         val bottomOffset: Int
         val topOffset: Int
 
@@ -306,6 +326,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
              */
             dy > 0 -> {
                 if (bottomBoundReached) {
+                    logIt("$dbgPrefix bottomBoundReached")
                     bottomOffset = getDecoratedBottom(lastView) - height
                     min(bottomOffset, dy)  // Минимальное из двух ПОЛОЖИТЕЛЬНЫХ чисел
                 } else {
@@ -318,6 +339,8 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
              */
             dy < 0 -> {
                 if (topBoundReached) {
+                    logIt("$dbgPrefix topBoundReached")
+
                     topOffset = getDecoratedTop(firstView)
                     max(dy, topOffset) // Максимальное из двух ОТРИЦАТЕЛЬНЫХ чисел
                 } else {
