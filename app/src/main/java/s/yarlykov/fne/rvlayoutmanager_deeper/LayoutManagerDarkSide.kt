@@ -27,7 +27,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
      * В любом случае в начале работы нужно сделать detach/scrap
      */
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
-        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
+        val dbgPrefix = "${object {}.javaClass.enclosingMethod?.name}"
 
         logIt("$dbgPrefix")
 
@@ -55,8 +55,11 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
 //        state.itemCount
 
         /**
-         * getChildCount() - Количество дочерних View, приаттаченных к RecyclerView БЕЗ учета
-         * View, которые detached/scrapped.
+         * getChildCount() - Количество дочерних View, attached к RecyclerView.
+         * Те что detached/scrapped в этот счетчик не попадают. Поэтому если
+         * сделать для всех detach/scrap, а потом пробовать что-то вроде
+         * getChildCount(0), то получим null.
+         *
          * Цепочка: Свой метод базового класса -> 'mChildHelper.getChildCount()'
          *
          * childCount == 0 при начальном Layout'е.
@@ -86,17 +89,63 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             detachAndScrapView(scrap, recycler)
         }
 
-        // Рекомендуется всегда делать перерасчет количества строк.
+        // Рекомендуется всегда делать перерасчет количества строк, которые вмещает view port.
         updateWindowSizing()
 
         fillRows(recycler)
+    }
+
+    private fun searchAnchorView(viewCache: SparseArray<View>, direction: FillDirection): View? {
+        var view: View? = null
+        var search = true
+        var index: Int
+
+        when (direction) {
+            FillDirection.DIRECTION_DOWN -> {
+                index = 0
+
+                while (search && index < (viewCache.size() - 1)) {
+                    viewCache.valueAt(index)?.let { child ->
+                        if (getDecoratedBottom(child) >= 0) {
+                            view = child
+                            search = false
+                            return@let
+                        } else {
+                            index++
+                        }
+                    }
+                }
+            }
+            FillDirection.DIRECTION_UP -> {
+                index = viewCache.size() - 1
+                while (search && index >= 0) {
+                    viewCache.valueAt(index)?.let { child ->
+                        if (getDecoratedTop(child) <= height) {
+                            view = child
+                            search = false
+                            return@let
+                        } else {
+                            index--
+                        }
+                    }
+                }
+            }
+            FillDirection.DIRECTION_NONE -> {
+//                view = viewCache.valueAt(0)
+            }
+        }
+
+        return view
     }
 
     private fun fillRows(
         recycler: RecyclerView.Recycler,
         direction: FillDirection = FillDirection.DIRECTION_NONE
     ) {
-        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
+        val dbgPrefix = "${object {}.javaClass.enclosingMethod?.name}"
+        logIt("$dbgPrefix::$direction is started")
+        logIt("$dbgPrefix childCount before detachView circle is $childCount")
+
         val viewCache = SparseArray<View>(childCount)
 
         // Заполнить локальный кэш содержимым view port'а, то есть поместить все
@@ -112,50 +161,56 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         for (i in 0 until viewCache.size()) {
             detachView(viewCache.valueAt(i))
         }
-        logIt("$dbgPrefix childCount=$childCount")
+        logIt("$dbgPrefix childCount after detachView circle is $childCount")
 
-        when (direction) {
-            FillDirection.DIRECTION_DOWN -> fillDown(recycler, viewCache)
-            FillDirection.DIRECTION_UP -> fillUp(recycler, viewCache)
-            FillDirection.DIRECTION_NONE -> {
+        searchAnchorView(viewCache, direction)?.let { anchorView ->
 
-                logIt("$dbgPrefix $direction")
+            when (direction) {
+                FillDirection.DIRECTION_DOWN -> fillDown(anchorView, recycler, viewCache)
+                FillDirection.DIRECTION_UP -> fillUp(anchorView, recycler, viewCache)
+                FillDirection.DIRECTION_NONE -> {
 
-                val leftOffset = 0
-                var topOffset = 0
+                    val leftOffset = 0
+                    var topOffset = 0
 
-                // Теперь размещаем внутри view port количество элементов,
-                // которое он может вместить, а именно visibleRowCount
-                for (index in 0 until visibleRowCount) {
-                    val nextPosition = childIndexToPosition(index)
+                    // Теперь размещаем внутри view port количество элементов,
+                    // которое он может вместить, а именно visibleRowCount
+                    for (index in 0 until visibleRowCount) {
+                        val nextPosition = childIndexToPosition(index)
 
-                    var view = viewCache.get(nextPosition)
+                        var view = viewCache.get(nextPosition)
 
-                    if (view == null) {
-                        view = recycler.getViewForPosition(nextPosition)
-                        addView(view)
+                        if (view == null) {
+                            view = recycler.getViewForPosition(nextPosition)
+                            addView(view)
 
-                        measureChildWithMargins(view, 0, 0)
-                        layoutDecorated(
-                            view,
-                            leftOffset,
-                            topOffset,
-                            leftOffset + decoratedChildWidth,
-                            topOffset + decoratedChildHeight
-                        )
-
-                        topOffset += decoratedChildHeight
-                    } else {
-                        attachView(view)
-                        viewCache.remove(nextPosition)
+                            measureChildWithMargins(view, 0, 0)
+                            layoutDecorated(
+                                view,
+                                leftOffset,
+                                topOffset,
+                                leftOffset + decoratedChildWidth,
+                                topOffset + decoratedChildHeight
+                            )
+                            topOffset += decoratedChildHeight
+                        } else {
+                            attachView(view)
+                            viewCache.remove(nextPosition)
+                        }
                     }
                 }
             }
+
+
         }
+
+
 
         for (i in 0 until viewCache.size()) {
             recycler.recycleView(viewCache.valueAt(i))
         }
+
+        viewCache.clear()
     }
 
     /**
@@ -166,13 +221,14 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
      *
      * Направление заполнения: сверху вниз
      */
-    private fun fillDown(recycler: RecyclerView.Recycler, viewCache: SparseArray<View>) {
-        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
+    private fun fillDown(
+        anchorView: View,
+        recycler: RecyclerView.Recycler,
+        viewCache: SparseArray<View>
+    ) {
+        val dbgPrefix = "${object {}.javaClass.enclosingMethod?.name}"
 
-        var position = viewCache.valueAt(0)
-            ?.let { firstView -> getPosition(firstView) } ?: -1
-
-        if (position == -1) return
+        var position = getPosition(anchorView)
 
         var fillDown = true
         var viewTop = 0
@@ -183,12 +239,19 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             // В кэше есть элемент
             if (child != null) {
                 // И его нижняя граница в области видимости
-                if(getDecoratedBottom(child) > 0) {
+                if (getDecoratedBottom(child) > 0) {
                     attachView(child)
                     viewCache.remove(position)
                 }
             }
-            // Если кэш закончился, то запрашиваем новый View
+            /**
+             * Если кэш закончился, то запрашиваем новый View и добавляем его.
+             * Важный момент ! Добавляемый View будет последним в иерархии дочерних
+             * View и будет иметь последний индекс ! Порядок индесов необходимо
+             * контролировать. Если такой View добавить самым первым, то он хоть
+             * и будет в layout'е на своем месте, внизу, но на getChildAt(0) тоже
+             * будет возвращаться именно он, а это неверно !!!
+             */
             else {
                 child = recycler.getViewForPosition(position)
                 addView(child)
@@ -211,16 +274,19 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
     /**
      * Заполнить верхнюю часть RecyclerView при прокрутке контента вниз.
      *
-     * Заполняем снизу вверх
+     * Заполняем сверху вниз из кэша, а потом добавляем на самый верх новый
+     * элемент. И добавляем его с явным указанием индекса 0 в иерархии View.
      */
-    private fun fillUp(recycler: RecyclerView.Recycler, viewCache: SparseArray<View>) {
-        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
-        logIt("$dbgPrefix")
+    private fun fillUp(
+        anchorView: View,
+        recycler: RecyclerView.Recycler,
+        viewCache: SparseArray<View>
+    ) {
+        val dbgPrefix = "${object {}.javaClass.enclosingMethod?.name}"
 
-        var position = viewCache.valueAt(viewCache.size() - 1)
-            ?.let { lastView -> getPosition(lastView) } ?: -1
+        var position = getPosition(anchorView)
 
-        if (position == -1) return
+        logIt("$dbgPrefix started. viewCache.size() = ${viewCache.size()}, last view position=$position")
 
         var fillUp = true
         var viewBottom = 0
@@ -228,18 +294,19 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         while (fillUp && position >= 0) {
             var child = viewCache.get(position)
 
-            // В кэше есть элемент
-            if (child != null ) {
-                // И его верхняя граница в области видимости
-                if(getDecoratedTop(child) < height) {
-                    attachView(child)
-                    viewCache.remove(position)
-                }
+            logIt("$dbgPrefix viewCache.get($position) ,  child not null: ${child != null}")
+
+            // В кэше есть элемент и его верхняя граница в области видимости
+            if (child != null && getDecoratedTop(child) < height) {
+                attachView(child, 0)
+                viewCache.remove(position)
+
+                logIt("$dbgPrefix attachView(child, 0), childCount=$childCount")
             }
             // Если кэш закончился, то запрашиваем новый View
             else {
                 child = recycler.getViewForPosition(position)
-                addView(child)
+                addView(child, 0)
                 measureChildWithMargins(child, 0, 0)
                 layoutDecorated(
                     child,
@@ -248,6 +315,8 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
                     decoratedChildWidth,
                     viewBottom
                 )
+
+                logIt("$dbgPrefix addView(child, 0), position=$position, childCount=$childCount")
             }
 
             viewBottom = getDecoratedTop(child)
@@ -262,37 +331,28 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         state: RecyclerView.State?
     ): Int {
 
-        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
-        logIt("$dbgPrefix childCount=$childCount")
-
-        // 1. Нет Views в RecyclerView (return)
-        if (childCount == 0) return 0
-
-        // 2. Все элементы уместились в view port (return)
-        val firstView: View? = getChildAt(0)
-        val lastView: View? = getChildAt(childCount - 1)
-
-        val viewSpan = getDecoratedBottom(lastView!!) - getDecoratedTop(firstView!!)
-
-//        if (viewSpan <= height) return 0
+        val dbgPrefix = "${object {}.javaClass.enclosingMethod?.name}"
+        logIt("$dbgPrefix is started with childCount=$childCount")
 
         // 3. Нужно вычислить delta и проскролить на её значение
-        val delta = calculateVerticalScrollingDelta(dy, firstView, lastView)
+        val delta = calculateVerticalScrollOffset(dy)
         logIt("$dbgPrefix delta=$delta")
 
         offsetChildrenVertical(-delta)
 
-        // Добавить новые элементы, если требуется
+        // ПОСЛЕ того как всех сдвинули добавляем новые элементы там где это требуется.
+        val topView = getChildAt(0)!!
+        val bottomView = getChildAt(childCount - 1)!!
         when {
             // Палец вверх.
             (dy > 0) -> {
-                if (getDecoratedBottom(lastView) < height) {
+                if (getDecoratedBottom(bottomView) < height) {
                     fillRows(recycler, FillDirection.DIRECTION_DOWN)
                 }
             }
             // Находим самый верхний элемент и от него добавляем вверх
             (dy < 0) -> {
-                if (getDecoratedTop(firstView) > 0) {
+                if (getDecoratedTop(topView) > 0) {
                     fillRows(recycler, FillDirection.DIRECTION_UP)
                 }
             }
@@ -305,15 +365,39 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
 
     /**
      * Вычислить реальное значение для dY
+     *
+     * NOTE: Размеры getDecorated... определяют максимальную поверхность,
+     * которую занимает элемент списка. Туда входят и его маргины и его декораторы, то есть
+     * с учетом decorated можно сказать, что элементы списка плотно лежат друг на друге
+     * без каких-либо промежутков: каждый последующий элемент начинается сразу после окончания
+     * предыдущего. Не может быть так, что один вышел за пределы viewport'а, соседний остался
+     * внутри и между ними какое-то пространство никем не занятое и по которому
+     * проходит border viewport'а. Все элементы смежные. Первый закончился, со следующего
+     * пикселя начинается второй и т.д.
      */
-    private fun calculateVerticalScrollingDelta(dy: Int, firstView: View, lastView: View): Int {
-        val dbgPrefix = "${object{}.javaClass.enclosingMethod?.name}"
+    private fun calculateVerticalScrollOffset(dy: Int): Int {
+        val dbgPrefix = "${object {}.javaClass.enclosingMethod?.name}"
+
+        // 1. Нет Views в RecyclerView (return)
+        if (childCount == 0) return 0
+
+        // 2. Все элементы уместились в view port (return 0)
+        val topView = getChildAt(0)!!
+        val bottomView = getChildAt(childCount - 1)!!
+
+        val viewSpan = getDecoratedBottom(bottomView) - getDecoratedTop(topView)
+        logIt(
+            "$dbgPrefix decoratedBottom=${getDecoratedBottom(bottomView)}, decoratedTop=${getDecoratedTop(
+                topView
+            )}, viewSpan=$viewSpan, height=$height, viewSpan < height is ${viewSpan < height}"
+        )
+        if (viewSpan < height) return 0
 
         val bottomOffset: Int
         val topOffset: Int
 
-        val topBoundReached = getPosition(firstView) == 0
-        val bottomBoundReached = getPosition(lastView) == (itemCount - 1)
+        val topBoundReached = getPosition(topView) == 0
+        val bottomBoundReached = getPosition(bottomView) == (itemCount - 1)
 
         return when {
 
@@ -327,7 +411,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             dy > 0 -> {
                 if (bottomBoundReached) {
                     logIt("$dbgPrefix bottomBoundReached")
-                    bottomOffset = getDecoratedBottom(lastView) - height
+                    bottomOffset = getDecoratedBottom(bottomView) - height
                     min(bottomOffset, dy)  // Минимальное из двух ПОЛОЖИТЕЛЬНЫХ чисел
                 } else {
                     dy
@@ -341,7 +425,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
                 if (topBoundReached) {
                     logIt("$dbgPrefix topBoundReached")
 
-                    topOffset = getDecoratedTop(firstView)
+                    topOffset = getDecoratedTop(topView)
                     max(dy, topOffset) // Максимальное из двух ОТРИЦАТЕЛЬНЫХ чисел
                 } else {
                     dy
@@ -382,7 +466,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
      * Расчитать количество видимых строк плюс 1, но не более количества элементов в адаптере.
      */
     private fun updateWindowSizing() {
-        visibleRowCount = (verticalSpace / decoratedChildHeight) + 1
+        visibleRowCount = verticalSpace / decoratedChildHeight
 
         if (verticalSpace % decoratedChildHeight != 0) {
             visibleRowCount++
