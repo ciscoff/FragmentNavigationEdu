@@ -2,6 +2,7 @@ package s.yarlykov.fne.rvlayoutmanager_deeper
 
 import android.util.SparseArray
 import android.view.View
+import androidx.core.util.isEmpty
 import androidx.recyclerview.widget.RecyclerView
 import s.yarlykov.fne.utils.logIt
 import kotlin.math.max
@@ -113,21 +114,12 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             }
         }
 
-        // DEBUG
-        for (i in 0 until viewCache.size()) {
-            logIt("i=$i, tag/position=${viewCache.valueAt(i).tag}")
-        }
-
         // Скрапим содержимое кэша
         for (i in 0 until viewCache.size()) {
             detachView(viewCache.valueAt(i))
         }
 
         val anchorView = searchAnchorView(viewCache, direction)
-
-        anchorView?.let { anchor ->
-            logIt("anchor position = ${getPosition(anchor)}")
-        }
 
         when (direction) {
             // Снизу образовалось свободное пространство
@@ -139,6 +131,8 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
 
                 val leftOffset = 0
                 var topOffset = 0
+
+                firstVisiblePosition = if(viewCache.isEmpty()) 0 else viewCache.keyAt(0)
 
                 // Теперь размещаем внутри view port количество элементов,
                 // которое он может вместить, а именно visibleRowCount
@@ -258,7 +252,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             var child = viewCache.get(position)
 
             // В кэше есть элемент и его верхняя граница в области видимости
-            if (child != null && getDecoratedTop(child) < height) {
+            if (child != null && getDecoratedTop(child) < verticalSpace) {
                 attachView(child, 0)
                 viewCache.remove(position)
             }
@@ -301,7 +295,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         when {
             // Палец вверх.
             (dy > 0) -> {
-                if (getDecoratedBottom(bottomView) < height) {
+                if (getDecoratedBottom(bottomView) < verticalSpace) {
                     fillRows(recycler, FillDirection.DIRECTION_DOWN)
                 }
             }
@@ -376,7 +370,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
                 index = viewCache.size() - 1
                 while (search && index >= 0) {
                     viewCache.valueAt(index)?.let { child ->
-                        if (getDecoratedTop(child) <= height) {
+                        if (getDecoratedTop(child) <= verticalSpace) {
                             view = child
                             search = false
                             return@let
@@ -418,7 +412,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         val bottomView = getChildAt(childCount - 1)!!
 
         val viewSpan = getDecoratedBottom(bottomView) - getDecoratedTop(topView)
-        if (viewSpan < height) return 0
+        if (viewSpan < verticalSpace) return 0
 
         val bottomOffset: Int
         val topOffset: Int
@@ -436,7 +430,7 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
              * имеет положительное значение.
              */
             dy > 0 -> {
-                bottomOffset = getDecoratedBottom(bottomView) - height
+                bottomOffset = getDecoratedBottom(bottomView) - verticalSpace
 
                 if (bottomBoundReached) {
                     logIt("$dbgPrefix bottomBoundReached")
@@ -491,7 +485,6 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
      * То есть высота RecyclerView минус вертикальные padding'и.
      */
     private val verticalSpace: Int
-        //        get() = height - paddingTop - paddingBottom
         get() = height
 
     /**
