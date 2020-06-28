@@ -7,9 +7,7 @@ import android.util.SparseArray
 import android.view.View
 import androidx.core.util.isEmpty
 import androidx.recyclerview.widget.RecyclerView
-import s.yarlykov.fne.R
 import s.yarlykov.fne.extensions.resolveAttribute
-import s.yarlykov.fne.extensions.themeAttributeValue
 import s.yarlykov.fne.utils.logIt
 import kotlin.math.max
 import kotlin.math.min
@@ -33,11 +31,11 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
     override fun canScrollVertically(): Boolean =
         orientation == Configuration.ORIENTATION_PORTRAIT
 
-
     override fun canScrollHorizontally(): Boolean =
         orientation == Configuration.ORIENTATION_LANDSCAPE
 
     fun setOrientation(_orientation: Int) {
+        logIt("setOrientation orientation=${_orientation}")
         orientation = _orientation
     }
 
@@ -200,7 +198,6 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
         for (i in 0 until viewCache.size()) {
             detachView(viewCache.valueAt(i))
         }
-
         val anchorView = searchAnchorView(viewCache, direction)
 
         when (direction) {
@@ -208,6 +205,10 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
             FillDirection.DIRECTION_DOWN -> fillDown(anchorView, recycler, viewCache)
             // Сверху образовалось свободное пространство
             FillDirection.DIRECTION_UP -> fillUp(anchorView, recycler, viewCache)
+            // Справа образовалось свободное пространство
+            FillDirection.DIRECTION_RIGHT -> fillRight(anchorView, recycler, viewCache)
+            // Слева образовалось свободное пространство
+            FillDirection.DIRECTION_LEFT -> fillLeft(anchorView, recycler, viewCache)
             // Начальная отрисовка или при скроле все вью остались прежними.
             FillDirection.DIRECTION_NONE -> {
 
@@ -244,11 +245,7 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
                 view = recycler.getViewForPosition(nextPosition)
                 addView(view)
 
-                val widthSpec = View.MeasureSpec.makeMeasureSpec(decoratedChildWidth, View.MeasureSpec.EXACTLY)
-                val heightSpec =
-                    View.MeasureSpec.makeMeasureSpec(decoratedChildHeight, View.MeasureSpec.EXACTLY)
-
-                measureChildWithDecorationsAndMargin(view, widthSpec, heightSpec)
+                makeChildMeasure(view)
 
 //                measureChildWithMargins(view, 0, 0)
                 layoutDecorated(
@@ -283,11 +280,7 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
                 view = recycler.getViewForPosition(nextPosition)
                 addView(view)
 
-                val widthSpec = View.MeasureSpec.makeMeasureSpec(decoratedChildWidth, View.MeasureSpec.EXACTLY)
-                val heightSpec =
-                    View.MeasureSpec.makeMeasureSpec(decoratedChildHeight, View.MeasureSpec.EXACTLY)
-
-                measureChildWithDecorationsAndMargin(view, widthSpec, heightSpec)
+                makeChildMeasure(view)
 
 //                measureChildWithMargins(view, 0, 0)
                 layoutDecorated(
@@ -303,6 +296,15 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
                 viewCache.remove(nextPosition)
             }
         }
+    }
+
+    private fun makeChildMeasure(view: View) {
+        val widthSpec =
+            View.MeasureSpec.makeMeasureSpec(decoratedChildWidth, View.MeasureSpec.EXACTLY)
+        val heightSpec =
+            View.MeasureSpec.makeMeasureSpec(decoratedChildHeight, View.MeasureSpec.EXACTLY)
+
+        measureChildWithDecorationsAndMargin(view, widthSpec, heightSpec)
     }
 
     /**
@@ -348,7 +350,9 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
             else {
                 child = recycler.getViewForPosition(position)
                 addView(child)
-                measureChildWithMargins(child, 0, 0)
+                makeChildMeasure(child)
+
+//                measureChildWithMargins(child, 0, 0)
                 layoutDecorated(
                     child,
                     0,
@@ -367,7 +371,7 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
     /**
      * Заполнить верхнюю часть RecyclerView при прокрутке контента вниз.
      *
-     * Заполняем сверху вниз из кэша, а потом добавляем на самый верх новый
+     * Заполняем снизу вверхиз кэша, а потом добавляем на самый верх новый
      * элемент. И добавляем его с явным указанием индекса 0 в иерархии View.
      */
     private fun fillUp(
@@ -395,7 +399,9 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
             else {
                 child = recycler.getViewForPosition(position)
                 addView(child, 0)
-                measureChildWithMargins(child, 0, 0)
+                makeChildMeasure(child)
+
+//                measureChildWithMargins(child, 0, 0)
                 layoutDecorated(
                     child,
                     0,
@@ -410,6 +416,134 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
             position--
         }
     }
+
+    /**
+     * Контент уходит влево, заполняем слева направо.
+     */
+    private fun fillRight(
+        anchorView: View?,
+        recycler: RecyclerView.Recycler,
+        viewCache: SparseArray<View>
+    ) {
+        val dbgPrefix = "${object {}.javaClass.enclosingMethod?.name}"
+
+        var position = anchorView
+            ?.let { getPosition(it) } ?: run { viewCache.keyAt(0) }
+
+        var fillRight = true
+        var viewLeft = 0
+
+        while (fillRight && position < itemCount) {
+            var child = viewCache.get(position)
+
+            // В кэше есть элемент
+            if (child != null) {
+                // И его правая граница в области видимости
+                if (getDecoratedRight(child) > 0) {
+                    attachView(child)
+                    viewCache.remove(position)
+                }
+            }
+            else {
+                child = recycler.getViewForPosition(position)
+                addView(child)
+                makeChildMeasure(child)
+
+//                measureChildWithMargins(child, 0, 0)
+                layoutDecorated(
+                    child,
+                    0,
+                    viewLeft,
+                    decoratedChildWidth,
+                    viewLeft + decoratedChildHeight
+                )
+            }
+
+            viewLeft = getDecoratedRight(child)
+            fillRight = viewLeft <= width
+            position++
+        }
+    }
+    /**
+     * Контент уходит вправо, заполняем справо налево.
+     */
+    private fun fillLeft(
+        anchorView: View?,
+        recycler: RecyclerView.Recycler,
+        viewCache: SparseArray<View>
+    ) {
+        val dbgPrefix = "${object {}.javaClass.enclosingMethod?.name}"
+
+        var position = anchorView
+            ?.let { getPosition(it) } ?: run { viewCache.keyAt(viewCache.size() - 1) }
+
+        var fillLeft = true
+        var viewRight = 0
+
+        while (fillLeft && position >= 0) {
+            var child = viewCache.get(position)
+
+            // В кэше есть элемент и его левая граница в области видимости
+            if (child != null && getDecoratedLeft(child) < horizontalSpace) {
+                attachView(child, 0)
+                viewCache.remove(position)
+            }
+            // Если кэш закончился, то запрашиваем новый View
+            else {
+                child = recycler.getViewForPosition(position)
+                addView(child, 0)
+                makeChildMeasure(child)
+//                measureChildWithMargins(child, 0, 0)
+                layoutDecorated(
+                    child,
+                    viewRight - decoratedChildWidth,
+                    0,
+                    decoratedChildWidth,
+                    viewRight
+                )
+            }
+
+            viewRight = getDecoratedLeft(child)
+            fillLeft = viewRight >= 0
+            position--
+        }
+    }
+
+    override fun scrollHorizontallyBy(
+        dx: Int,
+        recycler: RecyclerView.Recycler,
+        state: RecyclerView.State?
+    ): Int {
+        val dbgPrefix = "${object {}.javaClass.enclosingMethod?.name}"
+
+        // 1. Вычислить delta
+        val delta = calculateHorizontalScrollOffset(dx)
+
+        // 2. Проскролить на значение delta
+        offsetChildrenHorizontal(-delta)
+
+        // 3. ПОСЛЕ того как всех сдвинули добавляем новые элементы там где это требуется.
+        val leftView = getChildAt(0)!!
+        val rightView = getChildAt(childCount - 1)!!
+        when {
+            // Палец влево.
+            (dx > 0) -> {
+                if (getDecoratedRight(rightView) < horizontalSpace) {
+                    fillRows(recycler, FillDirection.DIRECTION_LEFT)
+                }
+            }
+            // Палец вправо.
+            (dx < 0) -> {
+                if (getDecoratedLeft(leftView) > 0) {
+                    fillRows(recycler, FillDirection.DIRECTION_RIGHT)
+                }
+            }
+            else -> fillRows(recycler)
+        }
+
+        return delta
+    }
+
 
     override fun scrollVerticallyBy(
         dy: Int,
@@ -479,6 +613,12 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
      * Если в результате прокрутки освободилось место сверху, то заполняем view port
      * вьюхами снизу вверх (DIRECTION_UP). Якорная вью в этом случае - первая видимая снизу.
      * На рисунке справа она вторая снизу (позиция в адаптере 8)
+     *
+     * Если в результате прокрутки освободилось место справа, то заполняем view port
+     * вьюхами слева направо (DIRECTION_RIGHT). Якорная вью - первая видимая слева.
+     *
+     * Если в результате прокрутки освободилось место слева, то заполняем view port
+     * вьюхами справа налево  (DIRECTION_LEFT). Якорная вью - первая видимая справа.
      */
     private fun searchAnchorView(viewCache: SparseArray<View>, direction: FillDirection): View? {
         var view: View? = null
@@ -506,6 +646,35 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
                 while (search && index >= 0) {
                     viewCache.valueAt(index)?.let { child ->
                         if (getDecoratedTop(child) <= verticalSpace) {
+                            view = child
+                            search = false
+                            return@let
+                        } else {
+                            index--
+                        }
+                    }
+                }
+            }
+            FillDirection.DIRECTION_RIGHT -> {
+                index = 0
+
+                while (search && index < (viewCache.size() - 1)) {
+                    viewCache.valueAt(index)?.let { child ->
+                        if (getDecoratedRight(child) >= 0) {
+                            view = child
+                            search = false
+                            return@let
+                        } else {
+                            index++
+                        }
+                    }
+                }
+            }
+            FillDirection.DIRECTION_LEFT -> {
+                index = viewCache.size() - 1
+                while (search && index >= 0) {
+                    viewCache.valueAt(index)?.let { child ->
+                        if (getDecoratedLeft(child) <= horizontalSpace) {
                             view = child
                             search = false
                             return@let
@@ -597,6 +766,14 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
                 0
             }
         }
+    }
+
+    /**
+     * Допилить. На осилил )
+     */
+    private fun calculateHorizontalScrollOffset(dy: Int): Int {
+
+        return 0
     }
 
     /**
