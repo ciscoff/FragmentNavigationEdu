@@ -2,7 +2,6 @@ package s.yarlykov.fne.rvlayoutmanager_deeper
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import s.yarlykov.fne.R
 
@@ -23,9 +22,10 @@ class ActivityDarkSide : AppCompatActivity() {
 
         rv.apply {
             adapter = adapterDarkSide
-            layoutManager = LayoutManagerDarkSide()
+            layoutManager = CustomLinearLayoutManager(context).apply {
+                setOrientation(resources.configuration.orientation)
+            }
         }
-
     }
 
     private fun findView() {

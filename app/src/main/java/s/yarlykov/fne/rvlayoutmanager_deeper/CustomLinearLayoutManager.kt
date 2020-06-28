@@ -1,14 +1,20 @@
 package s.yarlykov.fne.rvlayoutmanager_deeper
 
+import android.content.Context
+import android.content.res.Configuration
+import android.graphics.Rect
 import android.util.SparseArray
 import android.view.View
 import androidx.core.util.isEmpty
 import androidx.recyclerview.widget.RecyclerView
+import s.yarlykov.fne.R
+import s.yarlykov.fne.extensions.resolveAttribute
+import s.yarlykov.fne.extensions.themeAttributeValue
 import s.yarlykov.fne.utils.logIt
 import kotlin.math.max
 import kotlin.math.min
 
-class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
+class CustomLinearLayoutManager(private val context: Context) : RecyclerView.LayoutManager() {
 
     private var decoratedChildWidth: Int = 0
     private var decoratedChildHeight: Int = 0
@@ -16,10 +22,24 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
     // Количество видимых строк плюс 1
     private var visibleRowCount = 0
 
+    // Количество видимых столбцов плюс 1
+    private var visibleColCount = 0
+
     // Adapter position для первого видимого элемента внутри RecyclerView
     private var firstVisiblePosition = 0
 
-    override fun canScrollVertically(): Boolean = true
+    private var orientation = Configuration.ORIENTATION_PORTRAIT
+
+    override fun canScrollVertically(): Boolean =
+        orientation == Configuration.ORIENTATION_PORTRAIT
+
+
+    override fun canScrollHorizontally(): Boolean =
+        orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    fun setOrientation(_orientation: Int) {
+        orientation = _orientation
+    }
 
     /**
      * NOTE: Этот метод вызывается либо при первичной отрисовке данных из адаптера,
@@ -73,7 +93,21 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         if (childCount == 0) {
             val scrap = recycler.getViewForPosition(0)
             addView(scrap)
-            measureChildWithMargins(scrap, 0, 0)
+
+            val (viewWidth, viewHeight) =
+                if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    width to context.resolveAttribute(android.R.attr.actionBarSize)
+                } else {
+                    context.resolveAttribute(android.R.attr.actionBarSize) to height
+                }
+
+            val widthSpec = View.MeasureSpec.makeMeasureSpec(viewWidth!!, View.MeasureSpec.EXACTLY)
+            val heightSpec =
+                View.MeasureSpec.makeMeasureSpec(viewHeight!!, View.MeasureSpec.EXACTLY)
+
+            measureChildWithDecorationsAndMargin(scrap, widthSpec, heightSpec)
+
+//            measureChildWithMargins(scrap, 0, 0)
 
             /**
              * Все элементы будут одинаковой высоты и ширины
@@ -91,6 +125,54 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         updateWindowSizing()
 
         fillRows(recycler)
+    }
+
+    /**
+     * Получить размер view с учетом всех insets, а именно отступов, которые насчитал декоратор,
+     * а также маргинов нашей view
+     */
+    private fun measureChildWithDecorationsAndMargin(child: View, widthSpec: Int, heightSpec: Int) {
+
+        val decorRect = Rect()
+
+        // У декоратора запрашиваем инсеты для view и получаем их в Rect
+        calculateItemDecorationsForChild(child, decorRect)
+
+        val lp = child.layoutParams as RecyclerView.LayoutParams
+
+        val widthSpecUpdated = updateSpecWithExtra(
+            widthSpec,
+            lp.leftMargin + decorRect.left,
+            lp.rightMargin + decorRect.right
+        )
+
+        val heightSpecUpdated = updateSpecWithExtra(
+            heightSpec,
+            lp.topMargin + decorRect.top,
+            lp.bottomMargin + decorRect.bottom
+        )
+
+        child.measure(widthSpecUpdated, heightSpecUpdated)
+
+    }
+
+    /**
+     * Корректируем отдельную размерность (ширина/высота) view с учетом
+     * имеющихся insets.
+     */
+    private fun updateSpecWithExtra(spec: Int, startInset: Int, endInset: Int): Int {
+        if (startInset == 0 && endInset == 0) {
+            return spec
+        }
+
+        val mode = View.MeasureSpec.getMode(spec)
+
+        if (mode == View.MeasureSpec.AT_MOST || mode == View.MeasureSpec.EXACTLY) {
+            return View.MeasureSpec.makeMeasureSpec(
+                View.MeasureSpec.getSize(spec) - startInset - endInset, mode
+            )
+        }
+        return spec
     }
 
     /**
@@ -129,35 +211,10 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
             // Начальная отрисовка или при скроле все вью остались прежними.
             FillDirection.DIRECTION_NONE -> {
 
-                val leftOffset = 0
-                var topOffset = 0
-
-                firstVisiblePosition = if(viewCache.isEmpty()) 0 else viewCache.keyAt(0)
-
-                // Теперь размещаем внутри view port количество элементов,
-                // которое он может вместить, а именно visibleRowCount
-                for (index in 0 until visibleRowCount) {
-                    val nextPosition = childIndexToPosition(index)
-
-                    var view = viewCache.get(nextPosition)
-
-                    if (view == null) {
-                        view = recycler.getViewForPosition(nextPosition)
-                        addView(view)
-
-                        measureChildWithMargins(view, 0, 0)
-                        layoutDecorated(
-                            view,
-                            leftOffset,
-                            topOffset,
-                            leftOffset + decoratedChildWidth,
-                            topOffset + decoratedChildHeight
-                        )
-                        topOffset += decoratedChildHeight
-                    } else {
-                        attachView(view)
-                        viewCache.remove(nextPosition)
-                    }
+                if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    fillVertical(recycler, viewCache)
+                } else {
+                    fillHorizontal(recycler, viewCache)
                 }
             }
         }
@@ -168,6 +225,84 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
         }
 
         viewCache.clear()
+    }
+
+    private fun fillVertical(recycler: RecyclerView.Recycler, viewCache: SparseArray<View>) {
+        val leftOffset = 0
+        var topOffset = 0
+
+        firstVisiblePosition = if (viewCache.isEmpty()) 0 else viewCache.keyAt(0)
+
+        // Теперь размещаем внутри view port количество элементов,
+        // которое он может вместить, а именно visibleRowCount
+        for (index in 0 until visibleRowCount) {
+            val nextPosition = childIndexToPosition(index)
+
+            var view = viewCache.get(nextPosition)
+
+            if (view == null) {
+                view = recycler.getViewForPosition(nextPosition)
+                addView(view)
+
+                val widthSpec = View.MeasureSpec.makeMeasureSpec(decoratedChildWidth, View.MeasureSpec.EXACTLY)
+                val heightSpec =
+                    View.MeasureSpec.makeMeasureSpec(decoratedChildHeight, View.MeasureSpec.EXACTLY)
+
+                measureChildWithDecorationsAndMargin(view, widthSpec, heightSpec)
+
+//                measureChildWithMargins(view, 0, 0)
+                layoutDecorated(
+                    view,
+                    leftOffset,
+                    topOffset,
+                    leftOffset + decoratedChildWidth,
+                    topOffset + decoratedChildHeight
+                )
+                topOffset += decoratedChildHeight
+            } else {
+                attachView(view)
+                viewCache.remove(nextPosition)
+            }
+        }
+    }
+
+    private fun fillHorizontal(recycler: RecyclerView.Recycler, viewCache: SparseArray<View>) {
+        var leftOffset = 0
+        val topOffset = 0
+
+        firstVisiblePosition = if (viewCache.isEmpty()) 0 else viewCache.keyAt(0)
+
+        // Теперь размещаем внутри view port количество элементов,
+        // которое он может вместить, а именно visibleColCount
+        for (index in 0 until visibleColCount) {
+            val nextPosition = childIndexToPosition(index)
+
+            var view = viewCache.get(nextPosition)
+
+            if (view == null) {
+                view = recycler.getViewForPosition(nextPosition)
+                addView(view)
+
+                val widthSpec = View.MeasureSpec.makeMeasureSpec(decoratedChildWidth, View.MeasureSpec.EXACTLY)
+                val heightSpec =
+                    View.MeasureSpec.makeMeasureSpec(decoratedChildHeight, View.MeasureSpec.EXACTLY)
+
+                measureChildWithDecorationsAndMargin(view, widthSpec, heightSpec)
+
+//                measureChildWithMargins(view, 0, 0)
+                layoutDecorated(
+                    view,
+                    leftOffset,
+                    topOffset,
+                    leftOffset + decoratedChildWidth,
+                    topOffset + decoratedChildHeight
+                )
+                leftOffset += decoratedChildWidth
+            } else {
+                attachView(view)
+                viewCache.remove(nextPosition)
+            }
+        }
     }
 
     /**
@@ -480,6 +615,9 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
     private val totalRowCount: Int
         get() = itemCount
 
+    private val totalColCount: Int
+        get() = itemCount
+
     /**
      * "Полезное" вертикальное пространство для размещения дочерних Views.
      * То есть высота RecyclerView минус вертикальные padding'и.
@@ -487,20 +625,48 @@ class LayoutManagerDarkSide : RecyclerView.LayoutManager() {
     private val verticalSpace: Int
         get() = height
 
+    private val horizontalSpace: Int
+        get() = width
+
     /**
      * Расчитать количество видимых строк плюс 1, но не более количества элементов в адаптере.
      */
     private fun updateWindowSizing() {
-        visibleRowCount = verticalSpace / decoratedChildHeight
 
-        if (verticalSpace % decoratedChildHeight != 0) {
-            visibleRowCount++
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            visibleRowCount = verticalSpace / decoratedChildHeight
+            visibleColCount = 1
+
+            if (verticalSpace % decoratedChildHeight != 0) {
+                visibleRowCount++
+            }
+            visibleRowCount = min(totalRowCount, visibleRowCount)
+
+        } else {
+            visibleRowCount = 1
+            visibleColCount = horizontalSpace / decoratedChildWidth
+
+            if (horizontalSpace % decoratedChildWidth != 0) {
+                visibleColCount++
+            }
+            visibleColCount = min(totalColCount, visibleColCount)
         }
-
-        visibleRowCount = min(totalRowCount, visibleRowCount)
     }
 
     override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams {
+
+//        val dimension : Int = context.resolveAttribute(android.R.attr.actionBarSize) ?: RecyclerView.LayoutParams.WRAP_CONTENT
+//
+//        return if(orientation == Configuration.ORIENTATION_PORTRAIT) {
+//            RecyclerView.LayoutParams(
+//                RecyclerView.LayoutParams.MATCH_PARENT,
+//                dimension)
+//        } else {
+//            RecyclerView.LayoutParams(
+//                dimension,
+//                RecyclerView.LayoutParams.MATCH_PARENT)
+//        }
+
         return RecyclerView.LayoutParams(
             RecyclerView.LayoutParams.WRAP_CONTENT,
             RecyclerView.LayoutParams.WRAP_CONTENT
