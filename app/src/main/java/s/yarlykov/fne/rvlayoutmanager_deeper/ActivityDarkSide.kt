@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.recyclerview.widget.RecyclerView
 import s.yarlykov.fne.R
+import s.yarlykov.fne.rvlayoutmanager_deeper.imported.FixedGridLayoutManager
 
 class ActivityDarkSide : AppCompatActivity() {
 
@@ -25,7 +26,12 @@ class ActivityDarkSide : AppCompatActivity() {
 //            layoutManager = CustomLinearLayoutManager(context).apply {
 //                setOrientation(resources.configuration.orientation)
 //            }
-            layoutManager = CustomGridLayoutManager(context, 4)
+
+            //FixedGridLayoutManager
+//            layoutManager = FixedGridLayoutManager().apply {
+//                setTotalColumnCount(6)
+//            }
+            layoutManager = CustomGridLayoutManager(context, 6)
         }
     }
 
@@ -37,8 +43,8 @@ class ActivityDarkSide : AppCompatActivity() {
         for (ch in 'a'..'z') {
             alphaBeta.add(ch.toString())
         }
-        for (ch in 'A'..'Z') {
-            alphaBeta.add(ch.toString())
-        }
+//        for (ch in 'A'..'Z') {
+//            alphaBeta.add(ch.toString())
+//        }
     }
 }
