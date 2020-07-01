@@ -22,9 +22,10 @@ class ActivityDarkSide : AppCompatActivity() {
 
         rv.apply {
             adapter = adapterDarkSide
-            layoutManager = CustomLinearLayoutManager(context).apply {
-                setOrientation(resources.configuration.orientation)
-            }
+//            layoutManager = CustomLinearLayoutManager(context).apply {
+//                setOrientation(resources.configuration.orientation)
+//            }
+            layoutManager = CustomGridLayoutManager(context, 4)
         }
     }
 
@@ -33,7 +34,10 @@ class ActivityDarkSide : AppCompatActivity() {
     }
 
     private fun warmUp() {
-        for (ch in 'A'..'S') {
+        for (ch in 'a'..'z') {
+            alphaBeta.add(ch.toString())
+        }
+        for (ch in 'A'..'Z') {
             alphaBeta.add(ch.toString())
         }
     }

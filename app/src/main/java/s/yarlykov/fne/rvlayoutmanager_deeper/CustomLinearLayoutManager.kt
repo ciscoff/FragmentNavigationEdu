@@ -94,14 +94,14 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
 
             val (viewWidth, viewHeight) =
                 if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                    width to context.resolveAttribute(android.R.attr.actionBarSize)
+                    width to context.resolveAttribute(android.R.attr.actionBarSize)!!
                 } else {
-                    context.resolveAttribute(android.R.attr.actionBarSize) to height
+                    context.resolveAttribute(android.R.attr.actionBarSize)!! to height
                 }
 
-            val widthSpec = View.MeasureSpec.makeMeasureSpec(viewWidth!!, View.MeasureSpec.EXACTLY)
+            val widthSpec = View.MeasureSpec.makeMeasureSpec(viewWidth, View.MeasureSpec.EXACTLY)
             val heightSpec =
-                View.MeasureSpec.makeMeasureSpec(viewHeight!!, View.MeasureSpec.EXACTLY)
+                View.MeasureSpec.makeMeasureSpec(viewHeight, View.MeasureSpec.EXACTLY)
 
             measureChildWithDecorationsAndMargins(scrap, widthSpec, heightSpec)
 
@@ -126,7 +126,6 @@ class CustomLinearLayoutManager(private val context: Context) : RecyclerView.Lay
     /**
      * На входе - total view size, который состоит из размера самой view, плюс её маргины,
      * плюс инсеты декоратора.
-     * а также маргинов нашей view
      */
     private fun measureChildWithDecorationsAndMargins(
         child: View,
