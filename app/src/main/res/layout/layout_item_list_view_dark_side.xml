@@ -2,8 +2,8 @@
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="96dp"
+    android:layout_height="96dp"
     android:background="@drawable/background_round_thin_stroke">
 
     <TextView

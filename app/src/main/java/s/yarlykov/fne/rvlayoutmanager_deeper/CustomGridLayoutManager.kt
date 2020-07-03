@@ -5,6 +5,7 @@ import android.graphics.Rect
 import android.util.SparseArray
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import s.yarlykov.fne.extensions.px
 import kotlin.math.min
 
 const val maxColumns = 5
@@ -13,7 +14,7 @@ class CustomGridLayoutManager(private val context: Context, private val columns:
     RecyclerView.LayoutManager() {
 
     init {
-        if(columns <= 0) throw IllegalArgumentException("Argument 'columns' cannot be less than or equal to 0")
+        if (columns <= 0) throw IllegalArgumentException("Argument 'columns' cannot be less than or equal to 0")
     }
 
     private var decoratedChildWidth: Int = 0
@@ -53,9 +54,9 @@ class CustomGridLayoutManager(private val context: Context, private val columns:
 
             val (viewWidth, viewHeight) = itemDimensions()
 
-            val widthSpec = View.MeasureSpec.makeMeasureSpec(viewWidth, View.MeasureSpec.EXACTLY)
+            val widthSpec = View.MeasureSpec.makeMeasureSpec(96.px, View.MeasureSpec.EXACTLY)
             val heightSpec =
-                View.MeasureSpec.makeMeasureSpec(viewHeight, View.MeasureSpec.EXACTLY)
+                View.MeasureSpec.makeMeasureSpec(96.px, View.MeasureSpec.EXACTLY)
 
             measureChildWithDecorationsAndMargins(scrap, widthSpec, heightSpec)
 
@@ -81,13 +82,52 @@ class CustomGridLayoutManager(private val context: Context, private val columns:
         var leftOffset = 0
         var topOffset = 0
         var index = 0
+        val rowsQty = itemCount / columns
 
         firstVisiblePosition = 0
 
-        while(index < itemCount && topOffset <= height) {
-            val nextPosition = childIndexToPosition(index++)
+        while (index < rowsQty && topOffset <= height) {
+            fillRow(recycler, index++, topOffset)
+            topOffset += decoratedChildHeight
+        }
 
-            val view = recycler.getViewForPosition(nextPosition)
+//        while (index < itemCount && topOffset <= height) {
+//            val nextPosition = childIndexToPosition(index++)
+//
+//            val view = recycler.getViewForPosition(nextPosition)
+//            addView(view)
+//            makeChildMeasure(view)
+//            layoutDecorated(
+//                view,
+//                leftOffset,
+//                topOffset,
+//                leftOffset + decoratedChildWidth,
+//                topOffset + decoratedChildHeight
+//            )
+//
+//            leftOffset += decoratedChildWidth
+//
+//            if (leftOffset >= width) {
+//                leftOffset = 0
+//                topOffset += decoratedChildHeight
+//            }
+//        }
+    }
+
+    private fun fillRow(recycler: RecyclerView.Recycler, rowIndex: Int, topOffset: Int) {
+        var leftOffset = 0
+
+        var nextPosition = rowIndex * columns
+        val lastPosition =
+            if (nextPosition + columns <= itemCount) {
+                nextPosition + columns - 1
+            } else {
+                itemCount - 1
+            }
+
+        while (nextPosition <= lastPosition && leftOffset <= width) {
+
+            val view = recycler.getViewForPosition(nextPosition++)
             addView(view)
             makeChildMeasure(view)
             layoutDecorated(
@@ -97,13 +137,7 @@ class CustomGridLayoutManager(private val context: Context, private val columns:
                 leftOffset + decoratedChildWidth,
                 topOffset + decoratedChildHeight
             )
-
             leftOffset += decoratedChildWidth
-
-            if(leftOffset >= width) {
-                leftOffset = 0
-                topOffset += decoratedChildHeight
-            }
         }
     }
 
