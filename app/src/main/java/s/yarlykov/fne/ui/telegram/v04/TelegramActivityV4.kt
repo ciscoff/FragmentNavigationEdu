@@ -99,7 +99,7 @@ class TelegramActivityV4 : AppCompatActivity() {
     private fun updateAvatarMarginAndLayout(progress: Int) {
         val parentWidth = sceneRoot.measuredWidth
         val widthDelta = parentWidth.toFloat() - initDiameter
-        
+
         val kL = interpolatorLayout.getInterpolation(1f + progress.toFloat()/100f)
 
         val avatarLayoutParams = ivAvatar.layoutParams
