@@ -27,6 +27,9 @@ class TelegramActivityV4 : AppCompatActivity() {
     val interpolatorCorners = AccelerateInterpolator(3f)
     val interpolatorLayout = AccelerateInterpolator(1.2f)
 
+    var initMargin = 0
+    var initDiameter = 0
+
     var cornerRadiusMax = 0f
     var step = 1f
 
@@ -36,6 +39,9 @@ class TelegramActivityV4 : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_telegram_v04)
+
+        initMargin = dimensionPix(R.dimen.margin_rounded)
+        initDiameter = dimensionPix(R.dimen.circle_diameter_v4)
 
         findView()
     }
@@ -61,7 +67,7 @@ class TelegramActivityV4 : AppCompatActivity() {
 
     private val seekChangeListener = object : SeekBar.OnSeekBarChangeListener {
         override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-            updateAvatarCorderRadius(progress)
+            updateAvatarCornerRadius(progress)
             updateAvatarMarginAndLayout(progress)
 //            updateAvatarScale(progress)
 //            updateRectImage(progress)
@@ -74,7 +80,7 @@ class TelegramActivityV4 : AppCompatActivity() {
         }
     }
 
-    private fun updateAvatarCorderRadius(progress: Int) {
+    private fun updateAvatarCornerRadius(progress: Int) {
 
         val kC : Float = interpolatorCorners.getInterpolation(1f + progress.toFloat()/100f)
         roundedDrawable.cornerRadius = max(cornerRadiusMax - progress.toFloat() * step * kC, 0f)
@@ -92,12 +98,8 @@ class TelegramActivityV4 : AppCompatActivity() {
      */
     private fun updateAvatarMarginAndLayout(progress: Int) {
         val parentWidth = sceneRoot.measuredWidth
-        val initMargin = dimensionPix(R.dimen.margin_rounded)
-        val initDiameter = dimensionPix(R.dimen.circle_diameter_v4)
         val widthDelta = parentWidth.toFloat() - initDiameter
-
-//        val k: Float = getK(progress)
-
+        
         val kL = interpolatorLayout.getInterpolation(1f + progress.toFloat()/100f)
 
         val avatarLayoutParams = ivAvatar.layoutParams
@@ -112,7 +114,6 @@ class TelegramActivityV4 : AppCompatActivity() {
         avatarLayoutParams.height = avatarLayoutParams.width
 
         ivAvatar.layoutParams = avatarLayoutParams
-        ivAvatar.requestLayout()
         ivAvatar.invalidate()
     }
 
