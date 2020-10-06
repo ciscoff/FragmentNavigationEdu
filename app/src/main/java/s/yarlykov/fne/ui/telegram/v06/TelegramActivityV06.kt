@@ -1,29 +1,90 @@
 package s.yarlykov.fne.ui.telegram.v06
 
+import android.animation.ValueAnimator
+import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.SeekBar
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.RoundedBitmapDrawable
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import kotlinx.android.synthetic.main.activity_telegram_v06.*
 import s.yarlykov.fne.R
-import s.yarlykov.fne.utils.logIt
+import kotlin.math.max
+
+const val TAG_ANIM = "TAG_ANIM"
+const val ANIMATION_DURATION = 3000L
+
+/**
+ * Работа с ползунком
+ * ==================
+ * 1. onProgressChanged
+ * 2. -> updateImageViewHeight (via layoutParams)
+ * 3.       -> layout
+ * 4.           -> updateImageViewTransform
+ *
+ * Анимация
+ * ========
+ * 1. animateBounds
+ *
+ */
 
 class TelegramActivityV06 : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
+    lateinit var roundedDrawable: RoundedBitmapDrawable
+
+    /**
+     * Максимум для SeekBar
+     */
     private val seekMax = 100f
 
-    private var heightMax = 0f
-    private var heightMin = 0f
+    /**
+     * Габариты ImageView
+     */
+    private var avatarHeightMax = 0f
+    private var avatarHeightMin = 0f
+    private var avatarCollapsed = 0f
     private var heightStep = 0f
+
+    private var wMax = 0
+    private var hMax = 0
+
+    /**
+     * Габариты RoundedBitmapDrawable
+     */
+    private var drawableWidth = 0
+    private var drawableHeight = 0
+
+    /**
+     * Анимация выполняется/не_выполняется
+     */
+    private var isAnimating = false
+
+    /**
+     * Последнее значение из ValueAnimator'а
+     */
+    private var animatorUpdate = 0f
+
+    /**
+     * Смещение по Y которое устанавливается в матрице трансформаций
+     */
+    private var dY = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_telegram_v06)
 
-        heightMax = resources.getDimension(R.dimen.avatar_max_height)
-        heightMin = resources.getDimension(R.dimen.avatar_min_height)
-        heightStep = (heightMax - heightMin) / seekMax
+        avatarHeightMax = resources.getDimension(R.dimen.avatar_max_height)
+        avatarHeightMin = resources.getDimension(R.dimen.avatar_min_height)
+        avatarCollapsed = resources.getDimension(R.dimen.avatar_collapsed)
+        heightStep = (avatarHeightMax - avatarHeightMin) / seekMax
+
+        ivAvatar.setRoundedDrawable(R.drawable.valery)
+
+        roundedDrawable = ivAvatar.drawable as RoundedBitmapDrawable
+        drawableWidth = roundedDrawable.intrinsicWidth
+        drawableHeight = roundedDrawable.intrinsicHeight
 
         seekBar.apply {
             max = seekMax.toInt()
@@ -31,39 +92,83 @@ class TelegramActivityV06 : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
             setOnSeekBarChangeListener(this@TelegramActivityV06)
         }
 
-        ivValery.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
-            updateImageViewTransform(seekBar.progress)
+        ivAvatar.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+
+            /**
+             * В зависимости от того запущена анимация или нет вызываем разные функции трансформации.
+             * manualTransform - работает с прогрессом из SeekBar
+             * animatedTransform - работает с прогрессом из ValueAnimator
+             */
+            if (isAnimating) {
+                animatedTransform(animatorUpdate)
+            } else {
+                manualTransform(seekBar.progress)
+            }
+
+            wMax = max(v.measuredWidth, wMax)
+            hMax = max(v.measuredHeight, hMax)
+        }
+
+        btnAnim.setOnClickListener {
+            animateBounds()
         }
     }
 
-    private fun updateImageViewTransform(progress: Int) {
-        val drawable = ivValery.drawable ?: return
+    private val currentScale: Float
+        get() {
+            val viewWidth: Float = getImageViewWidth(ivAvatar).toFloat()
+            val viewHeight: Float = getImageViewHeight(ivAvatar).toFloat()
 
-        val viewWidth: Float = getImageViewWidth(ivValery).toFloat()
-        val viewHeight: Float = getImageViewHeight(ivValery).toFloat()
+            val widthScale = viewWidth / drawableWidth
+            val heightScale = viewHeight / drawableHeight
 
-        val drawableWidth = drawable.intrinsicWidth
-        val drawableHeight = drawable.intrinsicHeight
-
-        val widthScale = viewWidth / drawableWidth
-        val heightScale = viewHeight / drawableHeight
-        val scale = widthScale.coerceAtLeast(heightScale)
-
-        val k = 0.1f * (seekMax - progress)/seekMax
-
-        val baseMatrix = Matrix().apply {
-            reset()
-            postTranslate(0f, (viewHeight - drawableHeight) * (0.1f + k))
+            return max(widthScale, heightScale)/*widthScale.coerceAtLeast(heightScale)*/
         }
 
-        baseMatrix.postScale(scale, scale)
-        ivValery.imageMatrix = baseMatrix
+    /**
+     * Трансформация через ViewAnimator
+     */
+    private fun animatedTransform(progress: Float) {
+        ivAvatar.drawable ?: return
+
+        val scale = currentScale
+        val offsetY = dY * progress
+
+        val baseMatrix = Matrix().apply {
+            postTranslate(0f, offsetY)
+            postScale(scale, scale)
+        }
+
+        ivAvatar.imageMatrix = baseMatrix
+
+        isAnimating = progress >= 0f
+    }
+
+    /**
+     * Трансформируем картинку по сообщениям от seekBar
+     */
+    private fun manualTransform(progress: Int) {
+        ivAvatar.drawable ?: return
+
+        val viewHeight: Float = getImageViewHeight(ivAvatar).toFloat()
+        val scale = currentScale
+
+        val k = 0.05f * (seekMax - progress) / seekMax
+        dY = (viewHeight - drawableHeight) * (0.1f + k)
+        val offsetY = dY
+
+        val baseMatrix = Matrix().apply {
+            postTranslate(0f, offsetY)
+            postScale(scale, scale)
+        }
+
+        ivAvatar.imageMatrix = baseMatrix
     }
 
     private fun updateImageViewHeight(progress: Int) {
-        val avatarLayoutParams = ivValery.layoutParams
-        avatarLayoutParams.height = (heightMin + progress * heightStep).toInt()
-        ivValery.layoutParams = avatarLayoutParams
+        val avatarLayoutParams = ivAvatar.layoutParams
+        avatarLayoutParams.height = (avatarHeightMin + progress * heightStep).toInt()
+        ivAvatar.layoutParams = avatarLayoutParams
     }
 
     private fun getImageViewWidth(imageView: ImageView): Int {
@@ -72,6 +177,53 @@ class TelegramActivityV06 : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
 
     private fun getImageViewHeight(imageView: ImageView): Int {
         return imageView.height - imageView.paddingTop - imageView.paddingBottom
+    }
+
+    private fun animateBounds() {
+
+        /**
+         * Перед началом анимации нужно зафиксировать текущую высоту ImageView, потому что
+         * от этого значения будем анимаровать.
+         */
+        wMax = ivAvatar.measuredWidth
+        hMax = ivAvatar.measuredHeight
+
+        val animator = ValueAnimator.ofFloat(1f, 0f).apply {
+            duration = ANIMATION_DURATION
+
+            addUpdateListener {
+                isAnimating = true
+                animatorUpdate = animatedValue as Float
+                changeAvatarViewSize(animatorUpdate)
+                changeAvatarDrawableCornerRadius(animatorUpdate)
+            }
+        }
+
+        if (!animator.isStarted) {
+            animator.start()
+        }
+    }
+
+    /**
+     * Изменение размера ImageView
+     */
+    private fun changeAvatarViewSize(progress: Float) {
+        val size = avatarCollapsed
+
+        ivAvatar.layoutParams = ivAvatar.layoutParams.apply {
+            width = (size + (wMax - size) * progress).toInt()
+            height = (size + (hMax - size) * progress).toInt()
+        }
+    }
+
+    /**
+     * @progress изменяется от 1 до 0. При этом радиус увеличивается от 0 и до своего max
+     *
+     * NOTE: Радиус устанавливается не для ImageView, а для RoundedBitmapDrawable, поэтому
+     * для круглой картинки нужно ориентироваться именно на размеры RoundedBitmapDrawable.
+     */
+    private fun changeAvatarDrawableCornerRadius(progress: Float) {
+        roundedDrawable.cornerRadius = (1 - progress) * max(drawableWidth, drawableHeight) / 2f
     }
 
     /**
@@ -90,4 +242,14 @@ class TelegramActivityV06 : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
 
     override fun onStopTrackingTouch(seekBar: SeekBar?) {
     }
+
+    private fun ImageView.setRoundedDrawable(drawableId: Int) {
+        val resources = this.context.resources
+        val srcBitmap = BitmapFactory.decodeResource(resources, drawableId)
+
+        this.setImageDrawable(
+            RoundedBitmapDrawableFactory.create(resources, srcBitmap)
+        )
+    }
+
 }

@@ -7,17 +7,29 @@
     tools:context=".ui.telegram.v06.TelegramActivityV06">
 
     <ImageView
-        android:id="@+id/ivValery"
+        android:id="@+id/ivAvatar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/avatar_max_height"
-        app:layout_constraintTop_toTopOf="parent"
+        android:contentDescription="@null"
         android:scaleType="matrix"
-        app:srcCompat="@drawable/valery"
-        android:contentDescription="@null"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@drawable/valery" />
+
+    <Button
+        android:id="@+id/btnAnim"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="animate"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <SeekBar
         android:id="@+id/seekBar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
