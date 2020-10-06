@@ -14,7 +14,7 @@ import s.yarlykov.fne.R
 import kotlin.math.max
 
 const val TAG_ANIM = "TAG_ANIM"
-const val ANIMATION_DURATION = 3000L
+const val ANIMATION_DURATION = 150L
 
 /**
  * Работа с ползунком
@@ -22,11 +22,15 @@ const val ANIMATION_DURATION = 3000L
  * 1. onProgressChanged
  * 2. -> updateImageViewHeight (via layoutParams)
  * 3.       -> layout
- * 4.           -> updateImageViewTransform
+ * 4.           -> updateImageViewTransform -> manualTransform
  *
  * Анимация
  * ========
  * 1. animateBounds
+ * 2.1 changeAvatarViewSize
+ * 3.       -> layout
+ * 4.           -> updateImageViewTransform -> animatedTransform
+ * 2.2 changeAvatarDrawableCornerRadius
  *
  */
 
@@ -126,7 +130,8 @@ class TelegramActivityV06 : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
         }
 
     /**
-     * Трансформация через ViewAnimator
+     * Трансформация через ViewAnimator.
+     * @progress меняется от 1 до 0
      */
     private fun animatedTransform(progress: Float) {
         ivAvatar.drawable ?: return
