@@ -6,16 +6,23 @@
     android:layout_height="match_parent"
     tools:context=".ui.telegram.v06.TelegramActivityV06">
 
-    <ImageView
-        android:id="@+id/ivAvatar"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/avatar_max_height"
-        android:contentDescription="@null"
-        android:scaleType="matrix"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@drawable/valery" />
+        android:background="@color/colorAccent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/avatar_max_height"
+            android:contentDescription="@null"
+            android:layout_gravity="bottom|start"
+            android:scaleType="matrix"
+            tools:srcCompat="@drawable/valery" />
+    </FrameLayout>
 
     <Button
         android:id="@+id/btnAnim"
@@ -23,9 +30,9 @@
         android:layout_height="wrap_content"
         android:text="animate"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <SeekBar
         android:id="@+id/seekBar"
