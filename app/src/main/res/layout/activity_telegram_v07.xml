@@ -8,9 +8,9 @@
 
     <s.yarlykov.fne.ui.telegram.v07.ActionBarLayout
         android:id="@+id/actionBarLayout"
-        android:background="@color/colorAccent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/colorAccent"
         android:minHeight="?attr/actionBarSize"
         app:layout_constraintBottom_toTopOf="@id/listView"
         app:layout_constraintTop_toTopOf="parent" />
@@ -19,8 +19,9 @@
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:overScrollMode="never"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/actionBarLayout"
-        app:layout_constraintVertical_weight="1"/>
+        app:layout_constraintVertical_weight="1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

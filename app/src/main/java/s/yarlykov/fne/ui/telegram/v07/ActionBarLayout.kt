@@ -18,6 +18,7 @@ class ActionBarLayout @JvmOverloads constructor(
         minHeight = context.resources.getDimension(R.dimen.avatar_min_height)
     }
 
+    // Палец тянут вверх
     private fun siblingScrollingUp(dy: Int) {
         var isOwnHeightChanged: Boolean
 
@@ -27,18 +28,22 @@ class ActionBarLayout @JvmOverloads constructor(
             if (h <= minHeight) {
                 isOwnHeightChanged = measuredHeight != minHeight.toInt()
                 height = minHeight.toInt()
+                scrollingAllowed = true
             } else {
                 height = measuredHeight - dy
                 isOwnHeightChanged = true
+                scrollingAllowed = false
             }
         }
 
         if (isOwnHeightChanged) requestLayout()
     }
 
+    // Палец тянут вниз
     private fun siblingScrollingDown(dy: Int) {
 
-        var isOwnHeightChanged : Boolean
+        var isOwnHeightChanged: Boolean
+        scrollingAllowed = false
 
         layoutParams.apply {
 
@@ -54,6 +59,8 @@ class ActionBarLayout @JvmOverloads constructor(
         }
         if (isOwnHeightChanged) requestLayout()
     }
+
+    var scrollingAllowed: Boolean = false
 
     fun onOffsetChanged(offset: Int) {
         if (offset < 0) {
