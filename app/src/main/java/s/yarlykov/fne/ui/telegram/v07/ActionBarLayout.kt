@@ -18,7 +18,13 @@ class ActionBarLayout @JvmOverloads constructor(
         minHeight = context.resources.getDimension(R.dimen.avatar_min_height)
     }
 
-    // Палец тянут вверх
+    /**
+     * Палец тянут вверх
+     *
+     * NOTE: скроллинг контента становится возможным только если пальцем дотолкали AppBar
+     * до минимальной высоты. Тогда скроллинг открывается и можно продолжать прокрутку
+     * контента вверх. То есть в этот момент мы как бы состкакиваем с зацепа.
+     */
     private fun siblingScrollingUp(dy: Int) {
         var isOwnHeightChanged: Boolean
 
@@ -39,7 +45,9 @@ class ActionBarLayout @JvmOverloads constructor(
         if (isOwnHeightChanged) requestLayout()
     }
 
-    // Палец тянут вниз
+    /**
+     * Палец тянут вниз
+     */
     private fun siblingScrollingDown(dy: Int) {
 
         var isOwnHeightChanged: Boolean
