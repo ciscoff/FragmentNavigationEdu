@@ -120,13 +120,13 @@ class SmartRecyclerView @JvmOverloads constructor(
                 } else if (rawOffset < 0) {
 
                     if (isPullingUp) {
-//                        offsetListener?.invoke(rawOffset.toInt())
+                        offsetListener?.invoke(rawOffset.toInt())
 //                        translationY = max(translationY + rawOffset, 0f)
 //                        offsetListener?.invoke(translationY.toInt())
                     } else if (layoutManager.firstVisiblePosition == 0 && layoutManager.firstVisibleTop == 0) {
                         isPullingUp = true
                         isPullingDown = false
-//                        offsetListener?.invoke(rawOffset.toInt())
+                        offsetListener?.invoke(rawOffset.toInt())
 //                        translationY = max(translationY + rawOffset, 0f)
 //                        offsetListener?.invoke(translationY.toInt())
                     }
