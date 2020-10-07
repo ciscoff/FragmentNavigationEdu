@@ -15,7 +15,7 @@
         app:layout_constraintBottom_toTopOf="@id/listView"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
+    <s.yarlykov.fne.ui.telegram.v07.SmartRecyclerView
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="0dp"

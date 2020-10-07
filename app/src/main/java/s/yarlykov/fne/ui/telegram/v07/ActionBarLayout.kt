@@ -1,61 +1,65 @@
 package s.yarlykov.fne.ui.telegram.v07
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.FrameLayout
 import s.yarlykov.fne.R
+import kotlin.math.abs
 
 class ActionBarLayout @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
-    val minHeight: Float
-    val maxHeight: Float
+    private val minHeight: Float
+    private val maxHeight: Float
 
     init {
         maxHeight = context.resources.getDimension(R.dimen.avatar_max_height)
         minHeight = context.resources.getDimension(R.dimen.avatar_min_height)
     }
 
-    fun siblingScrollingUp(dy: Int): Boolean {
-
-        var isMoving : Boolean
+    private fun siblingScrollingUp(dy: Int) {
+        var isOwnHeightChanged: Boolean
 
         layoutParams.apply {
             val h = measuredHeight - dy
 
             if (h <= minHeight) {
-                isMoving = height != minHeight.toInt()
+                isOwnHeightChanged = measuredHeight != minHeight.toInt()
                 height = minHeight.toInt()
             } else {
                 height = measuredHeight - dy
-                isMoving = true
+                isOwnHeightChanged = true
             }
         }
 
-        if (isMoving) requestLayout()
-        return isMoving
+        if (isOwnHeightChanged) requestLayout()
     }
 
-    fun siblingScrollingDown(dy: Int): Boolean {
+    private fun siblingScrollingDown(dy: Int) {
 
-        var isMoving = false
+        var isOwnHeightChanged : Boolean
 
         layoutParams.apply {
+
             val h = measuredHeight + dy
 
             if (h >= maxHeight) {
-                isMoving = height != maxHeight.toInt()
+                isOwnHeightChanged = measuredHeight != maxHeight.toInt()
                 height = maxHeight.toInt()
             } else {
                 height = measuredHeight + dy
-                isMoving = true
+                isOwnHeightChanged = true
             }
         }
-        if (isMoving) requestLayout()
-        return isMoving
+        if (isOwnHeightChanged) requestLayout()
     }
 
+    fun onOffsetChanged(offset: Int) {
+        if (offset < 0) {
+            siblingScrollingUp(abs(offset))
+        } else if (offset > 0) {
+            siblingScrollingDown(abs(offset))
+        }
+    }
 }

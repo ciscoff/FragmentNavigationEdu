@@ -16,9 +16,10 @@ class AdapterLinear : RecyclerView.Adapter<ViewHolderX>() {
         )
     }
 
-    override fun getItemCount(): Int = 16
+    override fun getItemCount(): Int = 40
 
     override fun onBindViewHolder(holder: ViewHolderX, position: Int) {
+        holder.bind(position)
 
     }
 }

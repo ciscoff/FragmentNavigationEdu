@@ -20,4 +20,7 @@
     <dimen name="avatar_min_height">60dp</dimen>
     <dimen name="avatar_collapsed">56dp</dimen>
 
+    <dimen name="action_bar_max_height">200dp</dimen>
+    <dimen name="action_bar_min_height">?attr/actionBarSize</dimen>
+
 </resources>
