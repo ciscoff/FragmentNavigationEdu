@@ -207,7 +207,7 @@ class CustomLayoutManager : RecyclerView.LayoutManager() {
             recycler.recycleView(viewCache.valueAt(i))
         }
 
-        updateViewScale()
+//        updateViewScale()
     }
 
     private fun fillUp(anchorView: View?, recycler: RecyclerView.Recycler) {
